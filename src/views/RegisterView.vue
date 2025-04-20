@@ -9,6 +9,10 @@
                     <el-input v-model="registerForm.username" placeholder="请输入用户名" :prefix-icon="User"
                         class="login-input !rounded-button" />
                 </el-form-item>
+                <el-form-item prop="email">
+                    <el-input v-model="registerForm.email" placeholder="请输入邮箱" :prefix-icon="Message"
+                        class="login-input !rounded-button" />
+                </el-form-item>
                 <el-form-item prop="password">
                     <el-input v-model="registerForm.password" type="password" placeholder="请输入密码" :prefix-icon="Lock"
                         class="login-input !rounded-button" />
@@ -33,7 +37,7 @@
 <script lang="ts" setup>
 import { ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
-import { User, Lock } from '@element-plus/icons-vue';
+import { User, Lock, Message } from '@element-plus/icons-vue';
 import type { FormInstance } from 'element-plus';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
@@ -45,6 +49,7 @@ const router = useRouter();
 
 const registerForm = reactive({
     username: '',
+    email: '',
     password: '',
     confirmPassword: ''
 });
@@ -57,10 +62,25 @@ const validatePassword = (rule: any, value: string, callback: any) => {
     }
 };
 
+const validateEmail = (rule: any, value: string, callback: any) => {
+    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    if (!value) {
+        callback(new Error('请输入邮箱'));
+    } else if (!emailRegex.test(value)) {
+        callback(new Error('请输入有效的邮箱地址'));
+    } else {
+        callback();
+    }
+};
+
 const rules = {
     username: [
         { required: true, message: '请输入用户名', trigger: 'blur' },
         { min: 3, max: 20, message: '用户名长度应在 3 到 20 个字符之间', trigger: 'blur' }
+    ],
+    email: [
+        { required: true, message: '请输入邮箱', trigger: 'blur' },
+        { validator: validateEmail, trigger: 'blur' }
     ],
     password: [
         { required: true, message: '请输入密码', trigger: 'blur' },
@@ -80,6 +100,7 @@ const handleRegister = async () => {
         
         const response = await axios.post(config.user.register, {
             username: registerForm.username,
+            email: registerForm.email,
             password: registerForm.password
         });
         

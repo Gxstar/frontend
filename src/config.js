@@ -13,6 +13,7 @@ const config = {
   user: {
     login: `${API_BASE_URL}/users/login`, // POST
     register: `${API_BASE_URL}/users/register`, // POST
+    me: `${API_BASE_URL}/users/me`, // GET
     create: `${API_BASE_URL}/users/`, // POST
     list: `${API_BASE_URL}/users/`, // GET
     detail: (userId) => `${API_BASE_URL}/users/${userId}`, // GET

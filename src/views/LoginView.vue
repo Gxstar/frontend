@@ -36,6 +36,7 @@ import type { FormInstance } from 'element-plus';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import config from '@/config';
+import { useAuthStore } from '@/stores/auth';
 // import config from '../config';
 const loginFormRef = ref<FormInstance>();
 const loading = ref(false);
@@ -68,8 +69,7 @@ const handleLogin = async () => {
             username: loginForm.username,
             password: loginForm.password
         });
-        
-        localStorage.setItem('access_token', response.data.access_token);
+        await useAuthStore().login(response.data.access_token);
         ElMessage({
             type: 'success',
             message: '登录成功'
