@@ -35,9 +35,24 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  
+  const savedToken = localStorage.getItem('access_token')
+
+  if (savedToken && !authStore.isLoggedIn) {
+    try {
+      await authStore.login(savedToken)
+    } catch (error) {
+      authStore.logout()
+    }
+  }
+
+  // 如果用户已登录且尝试访问登录页面，则跳转到首页
+  if (authStore.isLoggedIn && to.name === 'login') {
+    next({ name: 'home' })
+    return
+  }
+
   if (to.meta.requiresAuth) {
     if (!authStore.isLoggedIn) {
       next({ name: 'login' })
