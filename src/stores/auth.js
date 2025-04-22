@@ -21,7 +21,7 @@ export const useAuthStore = defineStore('auth', () => {
       userRole.value = response.data.role
       return response.data
     } catch (error) {
-      ElMessage.error('获取用户信息失败')
+      // ElMessage.error('获取用户信息失败')
       throw error
     }
   }
