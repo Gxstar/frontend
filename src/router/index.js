@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import HomeView from '../views/HomeView.vue'
 import Admin from '@/views/Admin.vue'
 import LoginView from '@/views/LoginView.vue'
@@ -55,6 +56,7 @@ router.beforeEach(async (to, from, next) => {
 
   if (to.meta.requiresAuth) {
     if (!authStore.isLoggedIn) {
+      ElMessage.warning('请先登录')
       next({ name: 'login' })
     } else if (to.meta.requiresAdmin && !authStore.checkAdmin()) {
       next(from)
