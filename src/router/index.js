@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import HomeView from '../views/HomeView.vue'
-import Admin from '@/views/AdminView.vue'
+import AdminView from '@/views/AdminView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -17,11 +17,11 @@ const router = createRouter({
     {
       path: '/admin',
       name: 'admin',
-      component: Admin,
+      component: AdminView,
       meta: {
         requiresAuth: true,
         requiresAdmin: true
-      }
+      },
     },
     {
       path: '/login',
