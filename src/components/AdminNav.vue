@@ -1,18 +1,17 @@
 <template>
-  <div class="admin-nav">
-    <el-menu 
-      default-active="1" 
-      class="el-menu-demo" 
-      mode="horizontal"
-      :ellipsis="false"
-    >
+  <el-affix>
+    <div class="admin-nav">
+      <el-menu 
+        default-active="1" 
+        class="el-menu-demo" 
+        mode="horizontal"
+        :ellipsis="false"
+      >
       <div class="logo">
         <img src="@/assets/logo.svg" alt="Logo" class="logo-img">
       </div>
       
-      <div class="flex-grow" />
-      
-      <el-menu-item index="1" @click="goToHome">首页</el-menu-item>
+      <div class="flex-grow" />      
       
       <el-dropdown class="avatar-dropdown">
         <span class="el-dropdown-link">
@@ -22,31 +21,49 @@
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-            <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+            <el-dropdown-item command="logout" divided @click="handleLogout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
     </el-menu>
-  </div>
+    </div>
+  </el-affix>
 </template>
 
 <script lang="ts" setup>
-import { ElMenu, ElMenuItem, ElDropdown, ElDropdownMenu, ElDropdownItem, ElAvatar } from 'element-plus'
+import { ElMenu, ElDropdown, ElDropdownMenu, ElDropdownItem, ElAvatar, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter();
 const authStore = useAuthStore();
 
-const goToHome = () => {
-  router.push('/');
+const handleLogout = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要退出登录吗?',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    authStore.logout();
+    router.push('/login');
+  } catch (error) {
+    // 用户点击了取消
+  }
 };
+
 </script>
 
 <style scoped>
 .admin-nav {
   border-bottom: 1px solid #e6e6e6;
   padding: 0 20px;
+  width: 100%;
+  z-index: 1000;
 }
 .el-menu-demo {
   border: none;

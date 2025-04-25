@@ -74,7 +74,7 @@ const handleLogin = async () => {
             type: 'success',
             message: '登录成功'
         });
-        router.push('/');
+        router.push('/admin');
     } catch (error) {
         ElMessage({
             type: 'error',

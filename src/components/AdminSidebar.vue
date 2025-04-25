@@ -1,6 +1,6 @@
 <template>
   <el-menu 
-    default-active="1" 
+    :default-active="$route.path" 
     class="el-menu-vertical-demo" 
     mode="vertical"
     :router="true"
@@ -9,27 +9,27 @@
     text-color="#606266"
     active-text-color="#409EFF"
   >
-    <el-menu-item index="/">
+    <el-menu-item index="/admin/home">
       <el-icon><Menu /></el-icon>
       <span>首页</span>
     </el-menu-item>
-    <el-menu-item index="/camera">
+    <el-menu-item index="/admin/camera">
       <el-icon><Camera /></el-icon>
       <span>相机</span>
     </el-menu-item>
-    <el-menu-item index="/lens">
+    <el-menu-item index="/admin/lens">
       <el-icon><VideoCamera /></el-icon>
       <span>镜头</span>
     </el-menu-item>
-    <el-menu-item index="/checkpoint">
+    <el-menu-item index="/admin/bayonet">
       <el-icon><View /></el-icon>
       <span>卡口</span>
     </el-menu-item>
-    <el-menu-item index="/user">
+    <el-menu-item index="/admin/user">
       <el-icon><User /></el-icon>
       <span>用户</span>
     </el-menu-item>
-    <el-menu-item index="/settings">
+    <el-menu-item index="/admin/settings">
       <el-icon><Setting /></el-icon>
       <span>设置</span>
     </el-menu-item>
@@ -44,8 +44,7 @@ import { Menu, Camera, VideoCamera, View, User, Setting } from '@element-plus/ic
 <style scoped>
 .el-menu-vertical-demo {
   border-right: 1px solid #e6e6e6;
-  height: 100%;
-  min-height: 100vh;
+  min-height: calc(100vh - 60.57px);
   background-color: #ffffff;
 }
 

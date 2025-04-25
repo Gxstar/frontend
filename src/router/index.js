@@ -22,6 +22,38 @@ const router = createRouter({
         requiresAuth: true,
         requiresAdmin: true
       },
+      children: [
+        {
+          path: 'bayonet',
+          name: 'admin-bayonet',
+          component: () => import('@/views/admin/BayonetView.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'user',
+          name: 'admin-user',
+          component: () => import('@/views/admin/UserView.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'settings',
+          name: 'admin-settings',
+          component: () => import('@/views/admin/SettingsView.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'camera',
+          name: 'admin-camera',
+          component: () => import('@/views/admin/CameraView.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'lens',
+          name: 'admin-lens',
+          component: () => import('@/views/admin/LensView.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        }
+      ]
     },
     {
       path: '/login',
