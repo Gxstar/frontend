@@ -52,6 +52,12 @@ const router = createRouter({
           name: 'admin-lens',
           component: () => import('@/views/admin/LensView.vue'),
           meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: 'brand',
+          name: 'admin-brand',
+          component: () => import('@/views/admin/BrandView.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
         }
       ]
     },

@@ -9,20 +9,24 @@
     text-color="#606266"
     active-text-color="#409EFF"
   >
-    <el-menu-item index="/admin/home">
-      <el-icon><Menu /></el-icon>
-      <span>首页</span>
+    <el-menu-item index="/admin">
+      <el-icon><PieChart /></el-icon>
+      <span>仪表盘</span>
+    </el-menu-item>
+    <el-menu-item index="/admin/brand">
+      <el-icon><Shop /></el-icon>
+      <span>品牌</span>
     </el-menu-item>
     <el-menu-item index="/admin/camera">
       <el-icon><Camera /></el-icon>
       <span>相机</span>
     </el-menu-item>
     <el-menu-item index="/admin/lens">
-      <el-icon><VideoCamera /></el-icon>
+      <el-icon><Coin /></el-icon>
       <span>镜头</span>
     </el-menu-item>
     <el-menu-item index="/admin/bayonet">
-      <el-icon><View /></el-icon>
+      <el-icon><Connection /></el-icon>
       <span>卡口</span>
     </el-menu-item>
     <el-menu-item index="/admin/user">
@@ -38,7 +42,7 @@
 
 <script lang="ts" setup>
 import { ElMenu, ElMenuItem, ElIcon } from 'element-plus'
-import { Menu, Camera, VideoCamera, View, User, Setting } from '@element-plus/icons-vue'
+import { PieChart, Shop, Camera, Coin, Connection, User, Setting } from '@element-plus/icons-vue'
 </script>
 
 <style scoped>
