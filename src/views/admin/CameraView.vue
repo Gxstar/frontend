@@ -2,7 +2,7 @@
   <div class="camera-management-container">
     <!-- 搜索区域 -->
     <div class="search-area">
-      <el-input v-model="searchText" placeholder="请输入相机模型" clearable style="width: 250px" />
+      <el-input v-model="searchText" placeholder="请输入相机型号" clearable style="width: 250px" />
       <el-button type="primary" @click="fetchCameras">
         <el-icon>
           <Search />
@@ -31,7 +31,7 @@
       </template>
       <el-table :data="cameras" style="width: 100%" @selection-change="handleSelectionChange" stripe border>
         <el-table-column type="selection" width="50" align="center" />
-        <el-table-column prop="model" label="相机模型" align="center" />
+        <el-table-column prop="model" label="相机型号" align="center" />
         <el-table-column prop="model_zh" label="中文名称" align="center" />
         <el-table-column prop="brand_id" label="品牌ID" align="center" />
         <el-table-column prop="mount_id" label="卡口ID" align="center" />
@@ -64,23 +64,24 @@
       </el-table>
       <!-- 分页区域 -->
       <div class="pagination-area">
-        <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]" :total="total"
-          layout="total, sizes, prev, pager, next, jumper" @current-change="handleCurrentChange"
+        <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+          :total="total" layout="total, sizes, prev, pager, next, jumper" @current-change="handleCurrentChange"
           @update:page-size="handleSizeChange" />
       </div>
     </el-card>
     <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="formType === 'add' ? '新增相机' : '编辑相机'" width="30%">
       <el-form :model="formData" label-width="100px">
-        <el-form-item label="相机模型" prop="model">
-          <el-input v-model="formData.model" placeholder="请输入相机模型" />
+        <el-form-item label="相机型号" prop="model">
+          <el-input v-model="formData.model" placeholder="请输入相机型号" />
         </el-form-item>
         <el-form-item label="中文名称" prop="model_zh">
           <el-input v-model="formData.model_zh" placeholder="请输入中文名称" />
         </el-form-item>
-        <el-form-item label="品牌ID" prop="brand_id">
-          <el-input v-model="formData.brand_id" placeholder="请输入品牌ID" type="number" />
+        <el-form-item label="品牌" prop="brand_id">
+          <el-select v-model="formData.brand_id" placeholder="请选择品牌" clearable filterable>
+            <el-option v-for="brand in brandOptions" :key="brand.id" :label="brand.name_zh" :value="brand.id" />
+          </el-select>
         </el-form-item>
         <el-form-item label="卡口ID" prop="mount_id">
           <el-input v-model="formData.mount_id" placeholder="请输入卡口ID" type="number" />
@@ -123,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import axiosInstance from '@/utils/http'
@@ -136,7 +137,7 @@ const pageSize = ref(10)
 const total = ref(0)
 const dialogVisible = ref(false)
 const formType = ref('add')
-const formData = ref({ 
+const formData = ref({
   id: null,
   model: '',
   model_zh: '',
@@ -151,12 +152,22 @@ const formData = ref({
   weight_grams: null,
   dimensions: '',
   description: '',
-  
+
   created_at: '',
   updated_at: ''
 })
 
 const multipleSelection = ref([])
+const brandOptions = ref([])
+
+const fetchBrands = async () => {
+  try {
+    const response = await axiosInstance.get(config.brand.list)
+    brandOptions.value = response.data
+  } catch (error) {
+    ElMessage.error('获取品牌列表失败')
+  }
+}
 
 const fetchCameras = async () => {
   try {
@@ -178,17 +189,20 @@ const resetSearch = () => {
   searchText.value = ''
   currentPage.value = 1
   fetchCameras()
+  fetchBrands()
 }
 
 const handleSizeChange = (newSize) => {
   pageSize.value = newSize
   currentPage.value = 1
   fetchCameras()
+  fetchBrands()
 }
 
 const handleCurrentChange = (newPage) => {
   currentPage.value = newPage
   fetchCameras()
+  fetchBrands()
 }
 
 const handleSelectionChange = (val) => {
@@ -212,7 +226,7 @@ const addCamera = () => {
     weight_grams: null,
     dimensions: '',
     description: '',
-    
+
     created_at: '',
     updated_at: ''
   }
@@ -221,7 +235,7 @@ const addCamera = () => {
 
 const editCamera = (row) => {
   formType.value = 'edit'
-  formData.value = {...row}
+  formData.value = { ...row }
   dialogVisible.value = true
 }
 
@@ -236,6 +250,7 @@ const saveCamera = async () => {
     }
     dialogVisible.value = false
     fetchCameras()
+    fetchBrands()
   } catch (error) {
     ElMessage.error('保存失败')
   }
@@ -252,6 +267,7 @@ const deleteCamera = async (id) => {
         await axiosInstance.delete(config.camera.delete(id))
         ElMessage.success('删除成功')
         fetchCameras()
+        fetchBrands()
       } catch (error) {
         ElMessage.error('删除失败')
       }
@@ -268,6 +284,7 @@ const formatDate = (row, column, cellValue) => {
 }
 
 fetchCameras()
+fetchBrands()
 </script>
 
 <style scoped>
