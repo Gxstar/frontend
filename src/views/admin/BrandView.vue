@@ -2,14 +2,14 @@
     <div class="brand-management-container">
         <!-- 搜索区域 -->
         <div class="search-area">
-            <el-input v-model="searchKeyword" placeholder="请输入品牌名称/代码" clearable style="width: 250px" size="small" />
-            <el-button type="primary" @click="handleSearch" size="small">
+            <el-input v-model="searchKeyword" placeholder="请输入品牌名称/代码" clearable style="width: 250px" />
+            <el-button type="primary" @click="handleSearch">
                 <el-icon>
                     <Search />
                 </el-icon>
                 搜索
             </el-button>
-            <el-button @click="handleReset" size="small">
+            <el-button @click="handleReset">
                 <el-icon>
                     <Refresh />
                 </el-icon>
@@ -22,7 +22,7 @@
             <template #header>
                 <div class="card-header">
                     <span class="card-title">品牌列表</span>
-                    <el-button class="button" type="primary" size="small" @click="handleAdd">
+                    <el-button class="button" type="primary" @click="handleAdd">
                         <el-icon>
                             <Plus />
                         </el-icon>
@@ -33,10 +33,13 @@
 
             <el-table :data="tableData" style="width: 100%" @selection-change="handleSelectionChange" stripe border>
                 <el-table-column type="selection" width="50" align="center" />
-                <el-table-column prop="brandName" label="品牌名称" align="center" />
-                <el-table-column prop="brandCode" label="品牌代码" align="center" />
+                <el-table-column prop="name" label="品牌名称" align="center" />
+                <el-table-column prop="name_zh" label="中文名称" align="center" />
                 <el-table-column prop="country" label="所属国家" align="center" />
-                <el-table-column prop="createTime" label="创建时间" align="center" width="150" />
+                <el-table-column prop="founded_year" label="成立年份" align="center" />
+                <el-table-column prop="website" label="官网" align="center" />
+                <el-table-column prop="created_at" label="创建时间" align="center" width="150" :formatter="formatDate" />
+                <el-table-column prop="updated_at" label="更新时间" align="center" width="150" :formatter="formatDate" />
                 <el-table-column label="操作" width="180" align="center">
                     <template #default="scope">
                         <el-button type="primary" link size="small" @click="handleEdit(scope.row)">
@@ -57,20 +60,52 @@
 
             <!-- 分页区域 -->
             <div class="pagination-area">
-                <el-pagination v-model:currentPage="currentPage" v-model:page-size="pageSize"
-                    :page-sizes="[10, 20, 50, 100]" :small="false" :total="total"
+                <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
+                    :page-sizes="[10, 20, 50, 100]" :total="total"
                     layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
                     @current-change="handleCurrentChange" />
             </div>
         </el-card>
+
+        <!-- 新增/编辑弹窗 -->
+        <el-dialog v-model="dialogVisible" :title="formType === 'add' ? '新增品牌' : '编辑品牌'" width="30%">
+            <el-form :model="formData" label-width="100px">
+                <el-form-item label="品牌名称" prop="name">
+                    <el-input v-model="formData.name" placeholder="请输入品牌名称" />
+                </el-form-item>
+                <el-form-item label="中文名称" prop="name_zh">
+                    <el-input v-model="formData.name_zh" placeholder="请输入中文名称" />
+                </el-form-item>
+
+                <el-form-item label="所属国家" prop="country">
+                    <el-input v-model="formData.country" placeholder="请输入所属国家" />
+                </el-form-item>
+                <el-form-item label="成立年份" prop="founded_year">
+                    <el-date-picker v-model="formData.founded_year" type="year" placeholder="选择年份" value-format="YYYY"
+                        :disabled-date="(date) => date.getFullYear() > new Date().getFullYear()" />
+                </el-form-item>
+                <el-form-item label="官网" prop="website">
+                    <el-input v-model="formData.website" placeholder="请输入官网网址" />
+                </el-form-item>
+                <el-form-item label="描述" prop="description">
+                    <el-input v-model="formData.description" type="textarea" placeholder="请输入品牌描述" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="dialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="handleSubmit">确定</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
-import { ElMessage, ElMessageBox } from 'element-plus';
+
+import { ElMessage, ElMessageBox, ElForm, ElFormItem, ElDialog } from 'element-plus';
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue';
+import config from '@/config';
+import axiosInstance from '@/utils/http';
 
 export default {
     components: { Search, Refresh, Plus, Edit, Delete },
@@ -81,20 +116,20 @@ export default {
         const currentPage = ref(1);
         const pageSize = ref(10);
         const multipleSelection = ref([]);
-
+        
         const fetchData = async () => {
             try {
-                const response = await axios.get('/api/brands', {
+                const response = await axiosInstance.get(config.brand.list, {
                     params: {
                         keyword: searchKeyword.value,
-                        page: currentPage.value,
-                        pageSize: pageSize.value,
+                        skip: (currentPage.value - 1) * pageSize.value,
+                        limit: pageSize.value,
                     },
                 });
 
-                if (response.data.success) {
-                    tableData.value = response.data.data;
-                    total.value = response.data.total;
+                if (response.data) {
+                    tableData.value = response.data;
+                    total.value = response.data.length;
                 } else {
                     ElMessage.error('数据加载失败');
                 }
@@ -117,6 +152,7 @@ export default {
 
         const handleSizeChange = (size) => {
             pageSize.value = size;
+            currentPage.value = 1;
             fetchData();
         };
 
@@ -129,32 +165,79 @@ export default {
             multipleSelection.value = val;
         };
 
-        const handleEdit = (row) => {
-            console.log('Edit row:', row);
-            ElMessage.info(`编辑 ${row.brandName}`);
-            // TODO: 实现编辑逻辑
-        };
 
-        const handleDelete = (row) => {
-            ElMessageBox.confirm(`确定要删除 ${row.brandName} 吗?`, '提示', {
+
+        const handleDelete = async (row) => {
+            ElMessageBox.confirm(`确定要删除 ${row.name} 吗?`, '提示', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'warning',
             })
-                .then(() => {
-                    // TODO: 实现删除逻辑，并刷新表格数据
-                    console.log('Delete row:', row);
-                    ElMessage.success(`删除 ${row.brandName} 成功`);
-                    fetchData();
+                .then(async () => {
+                    try {
+                        await axiosInstance.delete(config.brand.delete(row.id));
+                        ElMessage.success(`删除 ${row.brandName} 成功`);
+                        fetchData();
+                    } catch (error) {
+                        console.error('Error deleting brand:', error);
+                        ElMessage.error('删除失败');
+                    }
                 })
                 .catch(() => {
                     ElMessage.info('已取消删除');
                 });
         };
 
+        const dialogVisible = ref(false);
+        const formType = ref('add');
+        const formData = ref({
+            brandName: '',
+            brandCode: '',
+            country: ''
+        });
+
         const handleAdd = () => {
-            ElMessage.info('新增');
-            // TODO: 实现新增逻辑
+            formType.value = 'add';
+            formData.value = {
+                name: '',
+                name_zh: '',
+                country: '',
+                founded_year: null,
+                website: '',
+                description: ''
+            };
+            dialogVisible.value = true;
+        };
+
+        const handleEdit = (row) => {
+            formType.value = 'edit';
+            formData.value = {
+                ...row
+            };
+            dialogVisible.value = true;
+        };
+
+        const formatDate = (row, column, cellValue) => {
+            if (!cellValue) return '';
+            const date = new Date(cellValue);
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+        };
+
+        const handleSubmit = async () => {
+            try {
+                if (formType.value === 'add') {
+                    await axiosInstance.post(config.brand.create, formData.value);
+                    ElMessage.success('新增品牌成功');
+                } else {
+                    await axiosInstance.put(config.brand.update(formData.value.id), formData.value);
+                    ElMessage.success('更新品牌成功');
+                }
+                dialogVisible.value = false;
+                fetchData();
+            } catch (error) {
+                console.error('Error saving brand:', error);
+                ElMessage.error('保存失败');
+            }
         };
 
         onMounted(() => {
@@ -168,6 +251,8 @@ export default {
             currentPage,
             pageSize,
             multipleSelection,
+            dialogVisible,
+            formData,
             handleSearch,
             handleReset,
             handleSizeChange,
@@ -176,6 +261,9 @@ export default {
             handleEdit,
             handleDelete,
             handleAdd,
+            handleSubmit,
+            formType,
+            formatDate,
         };
     },
 };
@@ -183,7 +271,6 @@ export default {
 
 <style scoped>
 .brand-management-container {
-    min-height: calc(100vh - 100.57px);
     /* 页面背景色 */
     font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
         'Microsoft YaHei', Arial, sans-serif;

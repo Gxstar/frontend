@@ -24,9 +24,9 @@ const router = createRouter({
       },
       children: [
         {
-          path: 'bayonet',
-          name: 'admin-bayonet',
-          component: () => import('@/views/admin/BayonetView.vue'),
+          path: 'mount',
+          name: 'admin-mount',
+          component: () => import('@/views/admin/MountView.vue'),
           meta: { requiresAuth: true, requiresAdmin: true }
         },
         {

@@ -11,31 +11,31 @@
   >
     <el-menu-item index="/admin">
       <el-icon><PieChart /></el-icon>
-      <span>仪表盘</span>
+      <span>数据面板</span>
     </el-menu-item>
     <el-menu-item index="/admin/brand">
       <el-icon><Shop /></el-icon>
-      <span>品牌</span>
+      <span>品牌管理</span>
     </el-menu-item>
     <el-menu-item index="/admin/camera">
       <el-icon><Camera /></el-icon>
-      <span>相机</span>
+      <span>相机信息</span>
     </el-menu-item>
     <el-menu-item index="/admin/lens">
       <el-icon><Coin /></el-icon>
-      <span>镜头</span>
+      <span>镜头信息</span>
     </el-menu-item>
-    <el-menu-item index="/admin/bayonet">
+    <el-menu-item index="/admin/mount">
       <el-icon><Connection /></el-icon>
-      <span>卡口</span>
+      <span>卡口管理</span>
     </el-menu-item>
     <el-menu-item index="/admin/user">
       <el-icon><User /></el-icon>
-      <span>用户</span>
+      <span>用户管理</span>
     </el-menu-item>
     <el-menu-item index="/admin/settings">
       <el-icon><Setting /></el-icon>
-      <span>设置</span>
+      <span>系统设置</span>
     </el-menu-item>
   </el-menu>
 </template>
