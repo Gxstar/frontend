@@ -202,7 +202,7 @@ export default {
                 name: '',
                 name_zh: '',
                 country: '',
-                founded_year: null,
+                founded_year: '',
                 website: '',
                 description: ''
             };
