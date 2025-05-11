@@ -22,24 +22,33 @@
             <template #header>
                 <div class="card-header">
                     <span class="card-title">品牌列表</span>
-                    <el-button class="button" type="primary" @click="handleAdd">
-                        <el-icon>
-                            <Plus />
-                        </el-icon>
-                        新增品牌
-                    </el-button>
+                    <div>
+                        <el-button class="button" type="primary" @click="handleAdd">
+                            <el-icon>
+                                <Plus />
+                            </el-icon>
+                            新增品牌
+                        </el-button>
+                        <el-button class="button" type="danger" :disabled="!multipleSelection.length" @click="handleBatchDelete">
+                            <el-icon>
+                                <Delete />
+                            </el-icon>
+                            批量删除
+                        </el-button>
+                    </div>
                 </div>
             </template>
 
             <el-table :data="tableData" style="width: 100%" @selection-change="handleSelectionChange" stripe border>
                 <el-table-column type="selection" width="50" align="center" />
+                <el-table-column prop="id" label="ID" align="center" sortable />
                 <el-table-column prop="name" label="品牌名称" align="center" />
                 <el-table-column prop="name_zh" label="中文名称" align="center" />
                 <el-table-column prop="country" label="所属国家" align="center" />
-                <el-table-column prop="founded_year" label="成立年份" align="center" />
+                <el-table-column prop="founded_year" label="成立年份" align="center" sortable />
                 <el-table-column prop="website" label="官网" align="center" />
-                <el-table-column prop="created_at" label="创建时间" align="center" width="150" :formatter="formatDate" />
-                <el-table-column prop="updated_at" label="更新时间" align="center" width="150" :formatter="formatDate" />
+                <el-table-column prop="created_at" label="创建时间" align="center" width="150" :formatter="formatDate" sortable />
+                <el-table-column prop="updated_at" label="更新时间" align="center" width="150" :formatter="formatDate" sortable />
                 <el-table-column label="操作" width="180" align="center">
                     <template #default="scope">
                         <el-button type="primary" link size="small" @click="handleEdit(scope.row)">
@@ -104,6 +113,7 @@ import { ref, onMounted } from 'vue';
 
 import { ElMessage, ElMessageBox, ElForm, ElFormItem, ElDialog } from 'element-plus';
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue';
+import { ElLoading } from 'element-plus';
 import config from '@/config';
 import axiosInstance from '@/utils/http';
 
@@ -176,7 +186,7 @@ export default {
                 .then(async () => {
                     try {
                         await axiosInstance.delete(config.brand.delete(row.id));
-                        ElMessage.success(`删除 ${row.brandName} 成功`);
+                        ElMessage.success(`删除 ${row.name} 成功`);
                         fetchData();
                     } catch (error) {
                         console.error('Error deleting brand:', error);
@@ -185,6 +195,34 @@ export default {
                 })
                 .catch(() => {
                     ElMessage.info('已取消删除');
+                });
+        };
+
+        const handleBatchDelete = async () => {
+            const names = multipleSelection.value.map(item => item.name).join(',');
+            const loading = ElLoading.service({ lock: true, text: '批量删除中...' });
+            ElMessageBox.confirm(`确定要删除选中的 ${multipleSelection.value.length} 个品牌吗?`, '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning',
+            })
+                .then(async () => {
+                    try {
+                        const ids = multipleSelection.value.map(item => item.id);
+                        for (const item of multipleSelection.value) {
+                            await axiosInstance.delete(config.brand.delete(item.id));
+                        }
+                        ElMessage.success(`成功删除 ${multipleSelection.value.length} 个品牌`);
+                        fetchData();
+                        loading.close();
+                    } catch (error) {
+                        console.error('Error batch deleting brands:', error);
+                        ElMessage.error('批量删除失败');
+                    }
+                })
+                .catch(() => {
+                    ElMessage.info('已取消批量删除');
+                    loading.close();
                 });
         };
 
@@ -264,6 +302,7 @@ export default {
             handleSubmit,
             formType,
             formatDate,
+            handleBatchDelete,
         };
     },
 };
