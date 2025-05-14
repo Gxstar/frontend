@@ -68,8 +68,8 @@
         <el-form-item label="卡口名称" prop="name">
           <el-input v-model="formData.name" placeholder="请输入卡口名称" />
         </el-form-item>
-        <el-form-item label="品牌" prop="brand_id">
-          <el-select v-model="formData.brand_id" placeholder="请选择品牌" clearable filterable>
+        <el-form-item label="品牌" prop="brands">
+          <el-select v-model="formData.brands" placeholder="请选择品牌" clearable filterable multiple>
             <el-option v-for="brand in brandOptions" :key="brand.id" :label="brand.name_zh" :value="brand.id" />
           </el-select>
         </el-form-item>
@@ -111,13 +111,11 @@ const formType = ref('add')
 const formData = ref({
   id: null,
   name: '',
-  brand_id: null,
+  brands: [],
   release_year: null,
   flange_distance: null,
   diameter: null,
-  description: '',
-  created_at: '',
-  updated_at: ''
+  description: ''
 })
 
 const multipleSelection = ref([])
@@ -175,16 +173,14 @@ const handleSelectionChange = (val) => {
 const addMount = () => {
   formType.value = 'add'
   formData.value = {
-    id: null,
-    name: '',
-    brand_id: null,
-    release_year: null,
-    flange_distance: null,
-    diameter: null,
-    description: '',
-    created_at: '',
-    updated_at: ''
-  }
+  id: null,
+  name: '',
+  brands: [],
+  release_year: null,
+  flange_distance: null,
+  diameter: null,
+  description: ''
+}
   dialogVisible.value = true
 }
 
@@ -196,11 +192,17 @@ const editMount = (row) => {
 
 const saveMount = async () => {
   try {
+    const { created_at, updated_at, ...rest } = formData.value
+    const payload = {
+      ...rest,
+      brands: formData.value.brands
+    }
+    
     if (formType.value === 'add') {
-      await axiosInstance.post(config.mount.create, formData.value)
+      await axiosInstance.post(config.mount.create, payload)
       ElMessage.success('新增卡口成功')
     } else {
-      await axiosInstance.put(config.mount.update(formData.value.id), formData.value)
+      await axiosInstance.put(config.mount.update(formData.value.id), payload)
       ElMessage.success('更新卡口成功')
     }
     dialogVisible.value = false
