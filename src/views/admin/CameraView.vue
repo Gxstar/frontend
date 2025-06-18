@@ -124,11 +124,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, getCurrentInstance } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
-import axiosInstance from '@/utils/http'
-import config from '@/config'
 
 const cameras = ref([])
 const searchText = ref('')
@@ -160,9 +158,11 @@ const formData = ref({
 const multipleSelection = ref([])
 const brandOptions = ref([])
 
+const { proxy } = getCurrentInstance();
+
 const fetchBrands = async () => {
   try {
-    const response = await axiosInstance.get(config.brand.list)
+    const response = await proxy.$api.brands.listBrands();
     brandOptions.value = response.data
   } catch (error) {
     ElMessage.error('获取品牌列表失败')
@@ -171,15 +171,13 @@ const fetchBrands = async () => {
 
 const fetchCameras = async () => {
   try {
-    const response = await axiosInstance.get(config.camera.list, {
-      params: {
-        search: searchText.value,
-        skip: (currentPage.value - 1) * pageSize.value,
-        limit: pageSize.value
-      }
-    })
-    cameras.value = response.data
-    total.value = response.headers['x-total-count'] || response.data.length
+    const response = await proxy.$api.cameras.listCameras(
+      (currentPage.value - 1) * pageSize.value,
+      pageSize.value,
+      searchText.value
+    );
+    cameras.value = response.data;
+    total.value = response.headers['x-total-count'] || response.data.length;
   } catch (error) {
     ElMessage.error('获取相机列表失败')
   }
@@ -242,16 +240,20 @@ const editCamera = (row) => {
 const saveCamera = async () => {
   try {
     if (formType.value === 'add') {
-      await axiosInstance.post(config.camera.create, formData.value)
+      await proxy.$api.cameras.createCamera({
+        requestBody: formData.value
+      })
       ElMessage.success('新增相机成功')
     } else {
-      await axiosInstance.put(config.camera.update(formData.value.id), formData.value)
-      ElMessage.success('更新相机成功')
+      await proxy.$api.cameras.updateCamera(formData.value.id, {
+        requestBody: formData.value
+      })
+      ElMessage.success('编辑相机成功')
     }
     dialogVisible.value = false
     fetchCameras()
-    fetchBrands()
   } catch (error) {
+    console.error('Error saving camera:', error)
     ElMessage.error('保存失败')
   }
 }
@@ -264,7 +266,7 @@ const deleteCamera = async (id) => {
   })
     .then(async () => {
       try {
-        await axiosInstance.delete(config.camera.delete(id))
+        await proxy.$api.cameras.deleteCamera(id)
         ElMessage.success('删除成功')
         fetchCameras()
         fetchBrands()

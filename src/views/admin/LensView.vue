@@ -115,11 +115,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, getCurrentInstance } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
-import axiosInstance from '@/utils/http'
-import config from '@/config'
 
 const lenses = ref([])
 const searchText = ref('')
@@ -149,9 +147,11 @@ const formData = ref({
 const multipleSelection = ref([])
 const brandOptions = ref([])
 
+const { proxy } = getCurrentInstance();
+
 const fetchBrands = async () => {
   try {
-    const response = await axiosInstance.get(config.brand.list)
+    const response = await proxy.$api.brands.listBrands();
     brandOptions.value = response.data
   } catch (error) {
     ElMessage.error('获取品牌列表失败')
@@ -160,15 +160,13 @@ const fetchBrands = async () => {
 
 const fetchLenses = async () => {
   try {
-    const response = await axiosInstance.get(config.lens.list, {
-      params: {
-        search: searchText.value,
-        skip: (currentPage.value - 1) * pageSize.value,
-        limit: pageSize.value
-      }
-    })
-    lenses.value = response.data
-    total.value = response.headers['x-total-count'] || response.data.length
+    const response = await proxy.$api.lenses.listLenses(
+      (currentPage.value - 1) * pageSize.value,
+      pageSize.value,
+      searchText.value
+    );
+    lenses.value = response.data;
+    total.value = response.headers['x-total-count'] || response.data.length;
   } catch (error) {
     ElMessage.error('获取镜头列表失败')
   }
@@ -229,39 +227,39 @@ const editLens = (row) => {
 const saveLens = async () => {
   try {
     if (formType.value === 'add') {
-      await axiosInstance.post(config.lens.create, formData.value)
+      await proxy.$api.lenses.createLens({
+        requestBody: formData.value
+      })
       ElMessage.success('新增镜头成功')
     } else {
-      await axiosInstance.put(config.lens.update(formData.value.id), formData.value)
-      ElMessage.success('更新镜头成功')
+      await proxy.$api.lenses.updateLens(formData.value.id, {
+        requestBody: formData.value
+      })
+      ElMessage.success('编辑镜头成功')
     }
     dialogVisible.value = false
     fetchLenses()
-    fetchBrands()
   } catch (error) {
+    console.error('Error saving lens:', error)
     ElMessage.error('保存失败')
   }
 }
 
 const deleteLens = async (id) => {
-  ElMessageBox.confirm('确定要删除该镜头吗?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
-    .then(async () => {
-      try {
-        await axiosInstance.delete(config.lens.delete(id))
-        ElMessage.success('删除成功')
-        fetchLenses()
-        fetchBrands()
-      } catch (error) {
-        ElMessage.error('删除失败')
-      }
+  try {
+    await ElMessageBox.confirm('此操作将永久删除该镜头, 是否继续?', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
     })
-    .catch(() => {
-      ElMessage.info('已取消删除')
-    })
+    await proxy.$api.lenses.deleteLens(id)
+    ElMessage.success('删除成功')
+    fetchLenses()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
 }
 
 const formatDate = (row, column, cellValue) => {

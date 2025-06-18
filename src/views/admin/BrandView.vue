@@ -109,13 +109,11 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, getCurrentInstance } from 'vue';
 
 import { ElMessage, ElMessageBox, ElForm, ElFormItem, ElDialog } from 'element-plus';
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue';
 import { ElLoading } from 'element-plus';
-import config from '@/config';
-import axiosInstance from '@/utils/http';
 
 export default {
     components: { Search, Refresh, Plus, Edit, Delete },
@@ -127,14 +125,14 @@ export default {
         const pageSize = ref(10);
         const multipleSelection = ref([]);
         
+        const { proxy } = getCurrentInstance();
+
         const fetchData = async () => {
             try {
-                const response = await axiosInstance.get(config.brand.list, {
-                    params: {
-                        keyword: searchKeyword.value,
-                        skip: (currentPage.value - 1) * pageSize.value,
-                        limit: pageSize.value,
-                    },
+                const response = await proxy.$api.brands.readBrands({
+                    keyword: searchKeyword.value,
+                    skip: (currentPage.value - 1) * pageSize.value,
+                    limit: pageSize.value,
                 });
 
                 if (response.data) {
@@ -185,7 +183,7 @@ export default {
             })
                 .then(async () => {
                     try {
-                        await axiosInstance.delete(config.brand.delete(row.id));
+                        await proxy.$api.brands.deleteBrand(row.id);
                         ElMessage.success(`删除 ${row.name} 成功`);
                         fetchData();
                     } catch (error) {
@@ -199,25 +197,36 @@ export default {
         };
 
         const handleBatchDelete = async () => {
-            const names = multipleSelection.value.map(item => item.name).join(',');
             const loading = ElLoading.service({ lock: true, text: '批量删除中...' });
-            ElMessageBox.confirm(`确定要删除选中的 ${multipleSelection.value.length} 个品牌吗?`, '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning',
-            })
+
+            if (multipleSelection.value.length === 0) {
+                ElMessage.warning('请选择要删除的品牌');
+                loading.close();
+                return;
+            }
+
+            ElMessageBox.confirm(
+                `确定要删除选中的 ${multipleSelection.value.length} 个品牌吗?`,
+                '提示',
+                {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                }
+            )
                 .then(async () => {
                     try {
-                        const ids = multipleSelection.value.map(item => item.id);
-                        for (const item of multipleSelection.value) {
-                            await axiosInstance.delete(config.brand.delete(item.id));
-                        }
-                        ElMessage.success(`成功删除 ${multipleSelection.value.length} 个品牌`);
+                        const idsToDelete = multipleSelection.value.map(item => item.id);
+                        await proxy.$api.brands.deleteBrands({
+                            requestBody: idsToDelete
+                        });
+                        ElMessage.success(`成功删除 ${idsToDelete.length} 个品牌`);
                         fetchData();
                         loading.close();
                     } catch (error) {
                         console.error('Error batch deleting brands:', error);
                         ElMessage.error('批量删除失败');
+                        loading.close();
                     }
                 })
                 .catch(() => {
@@ -264,17 +273,21 @@ export default {
         const handleSubmit = async () => {
             try {
                 if (formType.value === 'add') {
-                    await axiosInstance.post(config.brand.create, formData.value);
+                    await proxy.$api.brands.createBrand({
+                        requestBody: formData.value
+                    });
                     ElMessage.success('新增品牌成功');
                 } else {
-                    await axiosInstance.put(config.brand.update(formData.value.id), formData.value);
-                    ElMessage.success('更新品牌成功');
+                    await proxy.$api.brands.updateBrand(formData.value.id, {
+                        requestBody: formData.value
+                    });
+                    ElMessage.success('编辑品牌成功');
                 }
                 dialogVisible.value = false;
                 fetchData();
             } catch (error) {
-                console.error('Error saving brand:', error);
-                ElMessage.error('保存失败');
+                console.error('Error submitting form:', error);
+                ElMessage.error('操作失败');
             }
         };
 

@@ -39,9 +39,8 @@ import { ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 import { User, Lock, Message } from '@element-plus/icons-vue';
 import type { FormInstance } from 'element-plus';
-import axios from 'axios';
 import { useRouter } from 'vue-router';
-import config from '@/config';
+import api from '@/api';
 
 const registerFormRef = ref<FormInstance>();
 const loading = ref(false);
@@ -97,19 +96,22 @@ const handleRegister = async () => {
     try {
         await registerFormRef.value.validate();
         loading.value = true;
-        
-        const response = await axios.post(config.user.register, {
-            username: registerForm.username,
-            email: registerForm.email,
-            password: registerForm.password
+
+        await api.users.createUser({
+            requestBody: {
+                username: registerForm.username,
+                email: registerForm.email,
+                password: registerForm.password
+            }
         });
-        
+
         ElMessage({
             type: 'success',
             message: '注册成功'
         });
         router.push('/login');
     } catch (error) {
+        console.error(error);
         ElMessage({
             type: 'error',
             message: error.response?.data?.detail || '注册失败，请重试'

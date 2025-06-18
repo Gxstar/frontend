@@ -80,9 +80,9 @@ router.beforeEach(async (to, from, next) => {
 
   if (savedToken && !authStore.isLoggedIn) {
     try {
-      await authStore.login(savedToken)
+      await authStore.fetchUserInfo();
     } catch (error) {
-      authStore.logout()
+      authStore.logout();
     }
   }
 

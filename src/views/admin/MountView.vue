@@ -95,11 +95,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, getCurrentInstance } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
-import axiosInstance from '@/utils/http'
-import config from '@/config'
 
 const mounts = ref([])
 const searchText = ref('')
@@ -121,9 +119,11 @@ const formData = ref({
 const multipleSelection = ref([])
 const brandOptions = ref([])
 
+const { proxy } = getCurrentInstance();
+
 const fetchBrands = async () => {
   try {
-    const response = await axiosInstance.get(config.brand.list)
+    const response = await proxy.$api.brands.listBrands();
     brandOptions.value = response.data
   } catch (error) {
     ElMessage.error('获取品牌列表失败')
@@ -132,15 +132,13 @@ const fetchBrands = async () => {
 
 const fetchMounts = async () => {
   try {
-    const response = await axiosInstance.get(config.mount.list, {
-      params: {
-        search: searchText.value,
-        skip: (currentPage.value - 1) * pageSize.value,
-        limit: pageSize.value
-      }
-    })
-    mounts.value = response.data
-    total.value = response.headers['x-total-count'] || response.data.length
+    const response = await proxy.$api.mounts.listMounts(
+      (currentPage.value - 1) * pageSize.value,
+      pageSize.value,
+      searchText.value
+    );
+    mounts.value = response.data;
+    total.value = response.headers['x-total-count'] || response.data.length;
   } catch (error) {
     ElMessage.error('获取卡口列表失败')
   }
@@ -197,18 +195,22 @@ const saveMount = async () => {
       ...rest,
       brands: formData.value.brands
     }
-    
     if (formType.value === 'add') {
-      await axiosInstance.post(config.mount.create, payload)
+      await proxy.$api.mounts.createMount({
+        requestBody: payload
+      })
       ElMessage.success('新增卡口成功')
     } else {
-      await axiosInstance.put(config.mount.update(formData.value.id), payload)
-      ElMessage.success('更新卡口成功')
+      await proxy.$api.mounts.updateMount(formData.value.id, {
+        requestBody: payload
+      })
+      ElMessage.success('编辑卡口成功')
     }
     dialogVisible.value = false
     fetchMounts()
     fetchBrands()
   } catch (error) {
+    console.error('Error saving mount:', error)
     ElMessage.error('保存失败')
   }
 }
@@ -221,7 +223,7 @@ const deleteMount = async (id) => {
   })
     .then(async () => {
       try {
-        await axiosInstance.delete(config.mount.delete(id))
+        await proxy.$api.mounts.deleteMount(id)
         ElMessage.success('删除成功')
         fetchMounts()
         fetchBrands()

@@ -33,9 +33,7 @@ import { ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 import { User, Lock } from '@element-plus/icons-vue';
 import type { FormInstance } from 'element-plus';
-import axios from 'axios';
 import { useRouter } from 'vue-router';
-import config from '@/config';
 import { useAuthStore } from '@/stores/auth';
 // import config from '../config';
 const loginFormRef = ref<FormInstance>();
@@ -65,21 +63,18 @@ const handleLogin = async () => {
         await loginFormRef.value.validate();
         loading.value = true;
         
-        const response = await axios.post(config.user.login, {
-            username: loginForm.username,
-            password: loginForm.password
-        });
-        await useAuthStore().login(response.data.access_token);
+        await useAuthStore().login(loginForm.username, loginForm.password);
         ElMessage({
             type: 'success',
             message: '登录成功'
         });
         router.push('/admin');
     } catch (error) {
-        ElMessage({
-            type: 'error',
-            message: error.response?.data?.detail || '登录失败，请重试'
-        });
+        // 错误已在 auth store 中处理
+        // ElMessage({
+        //     type: 'error',
+        //     message: error.response?.data?.detail || '登录失败，请重试'
+        // });
     } finally {
         loading.value = false;
     }

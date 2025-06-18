@@ -99,11 +99,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, getCurrentInstance } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
-import axiosInstance from '@/utils/http'
-import config from '@/config'
 
 const users = ref([])
 const searchText = ref('')
@@ -128,17 +126,17 @@ const formData = ref({
 
 const multipleSelection = ref([])
 
+const { proxy } = getCurrentInstance();
+
 const fetchUsers = async () => {
   try {
-    const response = await axiosInstance.get(config.user.list, {
-      params: {
-        search: searchText.value,
-        skip: (currentPage.value - 1) * pageSize.value,
-        limit: pageSize.value
-      }
-    })
-    users.value = response.data
-    total.value = response.headers['x-total-count'] || response.data.length
+    const response = await proxy.$api.users.listUsers(
+      (currentPage.value - 1) * pageSize.value,
+      pageSize.value,
+      searchText.value
+    );
+    users.value = response.data;
+    total.value = response.headers['x-total-count'] || response.data.length;
   } catch (error) {
     ElMessage.error('获取用户列表失败')
   }
@@ -189,40 +187,42 @@ const editUser = (row) => {
   dialogVisible.value = true
 }
 
-const saveUser = async () => {
-  try {
-    if (formType.value === 'add') {
-      await axiosInstance.post(config.user.create, formData.value)
-      ElMessage.success('新增用户成功')
-    } else {
-      await axiosInstance.put(config.user.update(formData.value.id), formData.value)
-      ElMessage.success('更新用户成功')
-    }
-    dialogVisible.value = false
-    fetchUsers()
-  } catch (error) {
-    ElMessage.error('保存失败')
-  }
-}
-
-const deleteUser = async (id) => {
-  ElMessageBox.confirm('确定要删除该用户吗?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
-    .then(async () => {
+    const saveUser = async () => {
       try {
-        await axiosInstance.delete(config.user.delete(id))
-        ElMessage.success('删除成功')
+        if (formType.value === 'add') {
+          await proxy.$api.users.createUser({
+            requestBody: formData.value
+          })
+          ElMessage.success('新增用户成功')
+        } else {
+          await proxy.$api.users.updateUser(formData.value.id, {
+            requestBody: formData.value
+          })
+          ElMessage.success('编辑用户成功')
+        }
+        dialogVisible.value = false
         fetchUsers()
       } catch (error) {
-        ElMessage.error('删除失败')
+        console.error('Error saving user:', error)
+        ElMessage.error('保存失败')
       }
+    }
+
+const deleteUser = async (id) => {
+  try {
+    await ElMessageBox.confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
     })
-    .catch(() => {
-      ElMessage.info('已取消删除')
-    })
+    await proxy.$api.users.deleteUser(id)
+    ElMessage.success('删除成功')
+    fetchUsers()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
 }
 
 const formatDate = (row, column, cellValue) => {
