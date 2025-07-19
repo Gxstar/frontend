@@ -28,5 +28,9 @@ export type UserRead = {
      * 是否为超级管理员
      */
     is_superuser?: boolean;
+    /**
+     * 用户头像URL
+     */
+    avatar?: string;
 };
 

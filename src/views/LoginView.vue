@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Service } from '@/services/api/services/Service';
+import { useAuthStore } from '@/stores/auth';
+
+// 创建auth store实例
+const authStore = useAuthStore();
 
 // 定义状态
 const formData = ref({
@@ -36,13 +39,19 @@ const handleSubmit = async (e: Event) => {
   e.preventDefault();
   if (validateForm()) {
     try {
-      const response = await Service.loginAuthLoginPost({
+      const success = await authStore.login({
         username: formData.value.username,
-        password: formData.value.password,
-        grant_type: 'password'
+        password: formData.value.password
       });
-      console.log('Login successful:', response);
-      // 这里可以添加登录成功后的跳转逻辑
+      if (success) {
+        console.log('Login successful');
+        // 这里可以添加登录成功后的跳转逻辑
+      } else {
+        errors.value = {
+          username: '用户名或密码错误',
+          password: '用户名或密码错误'
+        };
+      }
     } catch (error) {
       console.error('Login failed:', error);
       errors.value = {

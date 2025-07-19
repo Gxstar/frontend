@@ -20,6 +20,10 @@ export type UserCreate = {
      */
     is_superuser?: boolean;
     /**
+     * 用户头像URL
+     */
+    avatar?: string;
+    /**
      * 用户密码
      */
     password: string;

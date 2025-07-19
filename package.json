@@ -12,6 +12,7 @@
     "gen-api": "npx openapi-typescript-codegen --input ./openapi.json --output ./src/services/api --client axios"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
     "axios": "^1.10.0",
     "element-plus": "^2.10.4",
     "form-data": "^4.0.4",

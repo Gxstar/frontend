@@ -1,12 +1,14 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { OpenAPI } from './services/api/core/OpenAPI';
+import './services/api/interceptors';
 import App from './App.vue'
 import router from './router'
 
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import './assets/main.css'
+
 
 // 在开发环境下使用代理路径，在生产环境下使用实际的后端地址
 

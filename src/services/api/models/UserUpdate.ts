@@ -10,6 +10,10 @@ export type UserUpdate = {
     username?: (string | null);
     email?: (string | null);
     is_superuser?: (boolean | null);
+    /**
+     * 用户头像URL
+     */
+    avatar?: (string | null);
     password?: (string | null);
 };
 
