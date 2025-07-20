@@ -74,13 +74,32 @@
             </svg>
           </button>
 
-          <div class="flex items-center space-x-2" v-if="authStore.user">
-            <img
-              class="h-8 w-8 rounded-full object-cover"
-              :src="authStore.user.avatar || 'https://picsum.photos/200/300'"
-              alt="用户头像"
-            />
-            <span class="text-sm font-medium text-gray-700">{{ authStore.user.username }}</span>
+          <div class="relative" v-if="authStore.user">
+            <div class="flex items-center space-x-2 cursor-pointer" @mouseenter="showUserMenu = true" @mouseleave="handleMenuLeave">
+              <img
+                class="h-8 w-8 rounded-full object-cover border-2 border-transparent hover:border-indigo-300 transition-all duration-200"
+                :src="authStore.user.avatar || 'https://picsum.photos/200/300'"
+                alt="用户头像"
+              />
+              <span class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors duration-200">{{ authStore.user.username }}</span>
+            </div>
+            
+            <!-- 用户菜单 -->
+            <div v-if="showUserMenu" class="absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-xl py-2 z-50 border border-gray-100" @mouseenter="cancelMenuLeave" @mouseleave="showUserMenu = false">
+              <button @click="handleNavigation('user-center')" class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 w-full text-left transition-all duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                进入用户中心
+              </button>
+              <div class="border-t border-gray-100 my-1"></div>
+              <button @click="handleLogout()" class="flex items-center px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 w-full text-left transition-all duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H3"></path>
+                </svg>
+                登出
+              </button>
+            </div>
           </div>
           <button v-else @click="handleNavigation('login')" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
             登录
@@ -168,15 +187,90 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 
 // 定义响应式状态
 const activeTab = ref('home');
 const mobileMenuOpen = ref(false);
+const showUserMenu = ref(false);
 const authStore = useAuthStore();
 const router = useRouter();
+
+// 处理登出
+const handleLogout = () => {
+  console.log('执行登出操作...');
+  if (authStore && typeof authStore.logout === 'function') {
+    try {
+      const result = authStore.logout();
+      // 检查是否是 Promise
+      if (result && typeof result.then === 'function') {
+        result
+          .then(() => {
+            console.log('登出成功');
+            router.push('/login');
+          })
+          .catch(error => {
+            console.error('登出失败:', error);
+          });
+      } else {
+        // 不是 Promise，直接处理
+        console.log('登出成功');
+        router.push('/login');
+      }
+    } catch (error) {
+      console.error('登出失败:', error);
+    }
+  } else {
+    console.error('登出失败: authStore.logout 不是一个函数');
+  }
+};
+
+let menuLeaveTimeout;
+
+  const handleMenuLeave = () => {
+    menuLeaveTimeout = setTimeout(() => {
+      showUserMenu.value = false;
+    }, 300);
+  }
+
+  const cancelMenuLeave = () => {
+    clearTimeout(menuLeaveTimeout);
+  };
+
+// 在组件挂载时获取用户信息和设置路由监听
+onMounted(() => {
+  console.log('Navbar组件已挂载');
+  console.log('当前登录状态:', authStore.isLoggedIn);
+  console.log('当前用户信息:', authStore.user);
+  
+  // 初始化activeTab为当前路由名称
+  activeTab.value = router.currentRoute.value.name || 'home';
+  
+  // 设置路由监听
+  const routeListener = router.afterEach((to) => {
+    activeTab.value = to.name || 'home';
+    console.log('路由变化，更新activeTab为:', activeTab.value);
+  });
+  
+  // 清理监听器
+  onUnmounted(() => {
+    routeListener();
+  });
+  
+  // 检查用户是否已登录但没有用户信息
+  if (authStore.isLoggedIn && !authStore.user) {
+    console.log('用户已登录但没有用户信息，尝试获取...');
+    authStore.getUserInfo()
+      .then(user => {
+        console.log('成功获取用户信息:', user);
+      })
+      .catch(error => {
+        console.error('获取用户信息失败:', error);
+      });
+  }
+});
 
 // 处理导航
 function handleNavigation(tab) {
