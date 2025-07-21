@@ -9,13 +9,14 @@
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"
+      @view="handleView"
     />
 
     <FormComponent
       v-model:visible="dialogVisible"
       :title="dialogTitle"
       :fields="formFields"
-      :initial-data="currentUser"
+      :initial-data="currentUser || undefined"
       @submit="handleFormSubmit"
     />
 
@@ -36,27 +37,29 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Service } from '@/services/api/services/Service';
-import type { UserRead, UserCreate, UserUpdate } from '@/services/api/models';
+import type { UserRead } from '@/services/api/models/UserRead';
+import type { UserUpdate } from '@/services/api/models/UserUpdate';
+import type { UserCreate } from '@/services/api/models/UserCreate';
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
 
 // 表格列配置
 const columns = [
-  { prop: 'id', label: 'ID', width: 80, align: 'center' },
+  { prop: 'id', label: 'ID', width: 80, align: 'center' as const },
   { prop: 'username', label: '用户名', width: 150 },
   { prop: 'email', label: '电子邮箱', width: 200 },
   { 
     prop: 'is_active', 
     label: '状态', 
     width: 100, 
-    align: 'center',
+    align: 'center' as const,
     formatter: (row: UserRead) => row.is_active ? '启用' : '禁用'
   },
   { 
     prop: 'is_superuser', 
     label: '管理员', 
     width: 100, 
-    align: 'center',
+    align: 'center' as const,
     formatter: (row: UserRead) => row.is_superuser ? '是' : '否'
   },
   { prop: 'created_at', label: '创建时间', width: 180 }
@@ -64,11 +67,11 @@ const columns = [
 
 // 表单字段配置
 const formFields = [
-  { prop: 'username', label: '用户名', type: 'input', required: true },
-  { prop: 'email', label: '电子邮箱', type: 'input', required: true },
-  { prop: 'password', label: '密码', type: 'input', required: false, placeholder: '不修改请留空' },
-  { prop: 'is_active', label: '是否启用', type: 'switch', required: false },
-  { prop: 'is_superuser', label: '是否管理员', type: 'switch', required: false }
+  { prop: 'username', label: '用户名', type: 'input' as const, required: true },
+  { prop: 'email', label: '电子邮箱', type: 'input' as const, required: true },
+  { prop: 'password', label: '密码', type: 'input' as const, required: false, placeholder: '不修改请留空' },
+  { prop: 'is_active', label: '是否启用', type: 'switch' as const, required: false },
+  { prop: 'is_superuser', label: '是否管理员', type: 'switch' as const, required: false }
 ];
 
 // 状态管理
@@ -95,6 +98,12 @@ const fetchUsers = async (page: number, pageSize: number) => {
 const handleAdd = () => {
   dialogTitle.value = '添加用户';
   currentUser.value = null;
+  dialogVisible.value = true;
+};
+
+const handleView = (user: UserRead) => {
+  dialogTitle.value = '查看用户';
+  currentUser.value = { ...user };
   dialogVisible.value = true;
 };
 
@@ -141,11 +150,11 @@ const confirmDelete = async () => {
 
 <style scoped>
 /* 页面样式 */
-::v-deep .el-dialog {
+:deep(.el-dialog) {
   border-radius: 8px;
 }
 
-::v-deep .el-form-item__label {
+:deep(.el-form-item__label) {
   font-weight: 500;
 }
 </style>

@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold text-gray-800">{{ title }}</h2>
       <el-button type="primary" @click="handleAdd">
-        <el-icon-plus class="mr-2" /> 添加
+        <el-icon class="mr-2"><Plus /></el-icon> 添加
       </el-button>
     </div>
 
@@ -22,9 +22,9 @@
 
       <el-table-column label="操作" width="180" align="center">
         <template #default="scope">
-          <el-button type="text" @click="handleView(scope.row)">查看</el-button>
-          <el-button type="text" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button type="text" danger @click="handleDelete(scope.row)">删除</el-button>
+          <el-button link @click="handleView(scope.row)">查看</el-button>
+          <el-button link @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button link danger @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -116,18 +116,18 @@ onMounted(() => {
 
 <style scoped>
 /* 表格样式优化 */
-::v-deep .el-table {
+:deep(.el-table) {
   border-radius: 6px;
   overflow: hidden;
 }
 
-::v-deep .el-table__header th {
+:deep(.el-table__header th) {
   background-color: #f5f7fa;
   font-weight: 500;
 }
 
 /* 分页样式 */
-::v-deep .el-pagination {
+:deep(.el-pagination) {
   padding: 10px 0;
 }
 </style>

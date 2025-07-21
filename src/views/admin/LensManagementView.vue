@@ -2,28 +2,13 @@
   <div class="p-6 bg-gray-50 min-h-screen">
     <h1 class="text-2xl font-bold text-gray-800 mb-6">镜头管理</h1>
 
-    <DataTable
-      title="镜头列表"
-      :columns="columns"
-      :fetchData="fetchLenses"
-      @add="handleAdd"
-      @edit="handleEdit"
-      @delete="handleDelete"
-    />
+    <DataTable title="镜头列表" :columns="columns" :fetchData="fetchLenses" @add="handleAdd" @edit="handleEdit"
+      @delete="handleDelete" />
 
-    <FormComponent
-      v-model:visible="dialogVisible"
-      :title="dialogTitle"
-      :fields="formFields"
-      :initial-data="currentLens"
-      @submit="handleFormSubmit"
-    />
+    <FormComponent v-model:visible="dialogVisible" :title="dialogTitle" :fields="formFields" :initial-data="currentLens || undefined"
+      @submit="handleFormSubmit" />
 
-    <el-dialog
-      v-model="confirmDialogVisible"
-      title="确认删除"
-      width="30%"
-    >
+    <el-dialog v-model="confirmDialogVisible" title="确认删除" width="30%">
       <p>确定要删除镜头 <strong>{{ currentLens?.model }}</strong> 吗？此操作不可撤销。</p>
       <template #footer>
         <el-button @click="confirmDialogVisible = false">取消</el-button>
@@ -34,69 +19,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref,computed } from 'vue';
 import { Service } from '@/services/api/services/Service';
-import type { LensRead, LensCreate, LensUpdate } from '@/services/api/models';
+import type { LensRead } from '@/services/api/models/LensRead';
+import type { LensCreate } from '@/services/api/models/LensCreate';
+import type { LensUpdate } from '@/services/api/models/LensUpdate';
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
 
 // 表格列配置
 const columns = [
-  { prop: 'id', label: 'ID', width: 80, align: 'center' },
+  { prop: 'id', label: 'ID', width: 80, align: 'center' as const },
   { prop: 'model', label: '镜头型号', width: 180 },
   { prop: 'mount_type', label: '卡口类型', width: 120 },
-  { 
-    prop: 'is_prime', 
-    label: '镜头类型', 
-    width: 120, 
-    align: 'center',
+  {
+    prop: 'is_prime',
+    label: '镜头类型',
+    width: 120,
+    align: 'center' as const,
     formatter: (row: LensRead) => row.is_prime ? '定焦' : '变焦'
   },
-  { 
-    prop: 'focal_length', 
-    label: '焦距(mm)', 
-    width: 150, 
-    align: 'center',
-    formatter: (row: LensRead) => row.is_prime ? row.min_focal_length : `${row.min_focal_length}-${row.max_focal_length}`
-  },
+  {
+      prop: 'focal_length',
+      label: '焦距(mm)',
+      width: 150,
+      align: 'center' as const,
+      formatter: (row: LensRead) => row.is_prime ? String(row.min_focal_length) : `${row.min_focal_length}-${row.max_focal_length}`
+    },
   { prop: 'sensor_size', label: '适用画幅', width: 120 },
-  { prop: 'max_aperture', label: '最大光圈', width: 120, align: 'center' },
-  { 
-    prop: 'is_active', 
-    label: '状态', 
-    width: 100, 
-    align: 'center',
+  { prop: 'max_aperture', label: '最大光圈', width: 120, align: 'center' as const },
+  {
+    prop: 'is_active',
+    label: '状态',
+    width: 100,
+    align: 'center' as const,
     formatter: (row: LensRead) => row.is_active ? '启用' : '禁用'
   }
 ];
-
-// 表单字段配置
-const formFields = [
-  { prop: 'model', label: '镜头型号', type: 'input', required: true },
-  { prop: 'mount_type', label: '卡口类型', type: 'input', required: true },
-  { prop: 'series', label: '镜头系列', type: 'input', required: false },
-  { prop: 'sensor_size', label: '适用画幅', type: 'input', required: true },
-  { 
-    prop: 'is_prime', 
-    label: '是否定焦镜头', 
-    type: 'switch', 
-    required: false,
-    @change="handlePrimeChange"
-  },
-  { prop: 'min_focal_length', label: '最小焦距(mm)', type: 'number', required: true },
-  { prop: 'max_focal_length', label: '最大焦距(mm)', type: 'number', required: false, v-if="!formData.is_prime" },
-  { prop: 'magnification', label: '放大倍率', type: 'number', required: false, step: 0.1 },
-  { prop: 'min_focus_distance', label: '最近对焦距离(m)', type: 'number', required: true, step: 0.01 },
-  { prop: 'max_aperture', label: '最大光圈', type: 'input', required: true },
-  { prop: 'is_active', label: '是否启用', type: 'switch', required: false }
-];
-
-// 状态管理
-const dialogVisible = ref(false);
-const confirmDialogVisible = ref(false);
-const dialogTitle = ref('添加镜头');
-const currentLens = ref<LensRead | null>(null);
-const formData = ref<LensCreate | LensUpdate>({});
 
 // 处理定焦/变焦切换
 const handlePrimeChange = (isPrime: boolean) => {
@@ -106,6 +65,52 @@ const handlePrimeChange = (isPrime: boolean) => {
     formData.value.max_focal_length = formData.value.min_focal_length;
   }
 };
+
+// 表单字段配置
+const formFields = computed(() => {
+  // 基础字段
+  const fields = [
+    { prop: 'model', label: '镜头型号', type: 'input' as const, required: true },
+    { prop: 'mount_type', label: '卡口类型', type: 'input' as const, required: true },
+    { prop: 'series', label: '镜头系列', type: 'input' as const, required: false },
+    { prop: 'sensor_size', label: '适用画幅', type: 'input' as const, required: true },
+    {
+      prop: 'is_prime',
+      label: '是否定焦镜头',
+      type: 'switch' as const,
+      required: false,
+      onChange: handlePrimeChange
+    },
+    { prop: 'min_focal_length', label: '最小焦距(mm)', type: 'number' as const, required: true }
+  ];
+
+  // 非定焦镜头显示最大焦距字段
+  if (!formData.value.is_prime) {
+    fields.push({
+      prop: 'max_focal_length',
+      label: '最大焦距(mm)',
+      type: 'number' as const,
+      required: false
+    });
+  }
+
+  // 其他字段
+  fields.push(
+    { prop: 'magnification', label: '放大倍率', type: 'number' as const, required: false },
+    { prop: 'min_focus_distance', label: '最近对焦距离(m)', type: 'number' as const, required: true },
+    { prop: 'max_aperture', label: '最大光圈', type: 'input' as const, required: true },
+    { prop: 'is_active', label: '是否启用', type: 'switch' as const, required: false, onChange: () => {} }
+  );
+
+  return fields;
+});
+
+// 状态管理
+const dialogVisible = ref(false);
+const confirmDialogVisible = ref(false);
+const dialogTitle = ref('添加镜头');
+const currentLens = ref<LensRead | null>(null);
+const formData = ref<LensCreate | LensUpdate>({});
 
 // 数据获取
 const fetchLenses = async (page: number, pageSize: number) => {
@@ -145,7 +150,7 @@ const handleFormSubmit = async (data: LensCreate | LensUpdate) => {
   try {
     if (currentLens.value) {
       // 更新镜头
-      await Service.updateLensLensesLensIdPut(currentLens.value.id, data as LensUpdate);
+      await Service.updateLensLensesIdPut(currentLens.value.id, data as LensUpdate);
     } else {
       // 创建镜头
       await Service.createLensLensesPost(data as LensCreate);
@@ -158,7 +163,7 @@ const handleFormSubmit = async (data: LensCreate | LensUpdate) => {
 const confirmDelete = async () => {
   if (currentLens.value) {
     try {
-      await Service.deleteLensLensesLensIdDelete(currentLens.value.id);
+      await Service.deleteLensLensesIdDelete(currentLens.value.id);
       confirmDialogVisible.value = false;
     } catch (error) {
       console.error('Failed to delete lens:', error);
@@ -169,11 +174,11 @@ const confirmDelete = async () => {
 
 <style scoped>
 /* 页面样式 */
-::v-deep .el-dialog {
+:deep(.el-dialog) {
   border-radius: 8px;
 }
 
-::v-deep .el-form-item__label {
+:deep(.el-form-item__label) {
   font-weight: 500;
 }
 </style>

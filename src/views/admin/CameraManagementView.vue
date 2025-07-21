@@ -15,7 +15,7 @@
       v-model:visible="dialogVisible"
       :title="dialogTitle"
       :fields="formFields"
-      :initial-data="currentCamera"
+      :initial-data="currentCamera || undefined"
       @submit="handleFormSubmit"
     />
 
@@ -36,22 +36,24 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Service } from '@/services/api/services/Service';
-import type { CameraRead, CameraCreate, CameraUpdate } from '@/services/api/models';
+import type { CameraRead } from '@/services/api/models/CameraRead';
+import type { CameraCreate } from '@/services/api/models/CameraCreate';
+import type { CameraUpdate } from '@/services/api/models/CameraUpdate';
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
 
 // 表格列配置
 const columns = [
-  { prop: 'id', label: 'ID', width: 80, align: 'center' },
+  { prop: 'id', label: 'ID', width: 80, align: 'center' as const },
   { prop: 'model', label: '相机型号', width: 180 },
   { prop: 'series', label: '相机系列', width: 150 },
-  { prop: 'megapixels', label: '像素(百万)', width: 120, align: 'center' },
+  { prop: 'megapixels', label: '像素(百万)', width: 120, align: 'center' as const },
   { prop: 'sensor_size', label: '传感器尺寸', width: 140 },
   { 
     prop: 'interchangeable_lens', 
     label: '可换镜头', 
     width: 120, 
-    align: 'center',
+    align: 'center' as const,
     formatter: (row: CameraRead) => row.interchangeable_lens ? '是' : '否'
   },
   { prop: 'mount_type', label: '卡口类型', width: 120 },
@@ -59,44 +61,44 @@ const columns = [
     prop: 'is_active', 
     label: '状态', 
     width: 100, 
-    align: 'center',
+    align: 'center' as const,
     formatter: (row: CameraRead) => row.is_active ? '启用' : '禁用'
   }
 ];
 
 // 表单字段配置
 const formFields = [
-  { prop: 'model', label: '相机型号', type: 'input', required: true },
-  { prop: 'series', label: '相机系列', type: 'input', required: false },
-  { prop: 'megapixels', label: '传感器像素(百万)', type: 'number', required: true },
-  { prop: 'sensor_size', label: '传感器尺寸', type: 'input', required: true },
+  { prop: 'model', label: '相机型号', type: 'input' as const, required: true },
+  { prop: 'series', label: '相机系列', type: 'input' as const, required: false },
+  { prop: 'megapixels', label: '传感器像素(百万)', type: 'number' as const, required: true },
+  { prop: 'sensor_size', label: '传感器尺寸', type: 'input' as const, required: true },
   { 
     prop: 'interchangeable_lens', 
     label: '可更换镜头', 
-    type: 'switch', 
+    type: 'switch' as const, 
     required: false
   },
-  { prop: 'mount_type', label: '镜头卡口类型', type: 'input', required: false },
-  { prop: 'weight', label: '重量(克)', type: 'number', required: false },
+  { prop: 'mount_type', label: '镜头卡口类型', type: 'input' as const, required: false },
+  { prop: 'weight', label: '重量(克)', type: 'number' as const, required: false },
   { 
     prop: 'image_stabilization', 
     label: '支持防抖', 
-    type: 'switch', 
+    type: 'switch' as const, 
     required: false
   },
   { 
     prop: 'built_in_flash', 
     label: '内置闪光灯', 
-    type: 'switch', 
+    type: 'switch' as const, 
     required: false
   },
   { 
     prop: 'hot_shoe', 
     label: '热靴', 
-    type: 'switch', 
+    type: 'switch' as const, 
     required: false
   },
-  { prop: 'is_active', label: '是否启用', type: 'switch', required: false }
+  { prop: 'is_active', label: '是否启用', type: 'switch' as const, required: false }
 ];
 
 // 状态管理
@@ -141,7 +143,7 @@ const handleFormSubmit = async (data: CameraCreate | CameraUpdate) => {
   try {
     if (currentCamera.value) {
       // 更新相机
-      await Service.updateCameraCamerasCameraIdPut(currentCamera.value.id, data as CameraUpdate);
+      await Service.updateCameraCamerasIdPut(currentCamera.value.id, data as CameraUpdate);
     } else {
       // 创建相机
       await Service.createCameraCamerasPost(data as CameraCreate);
@@ -154,7 +156,7 @@ const handleFormSubmit = async (data: CameraCreate | CameraUpdate) => {
 const confirmDelete = async () => {
   if (currentCamera.value) {
     try {
-      await Service.deleteCameraCamerasCameraIdDelete(currentCamera.value.id);
+      await Service.deleteCameraCamerasIdDelete(currentCamera.value.id);
       confirmDialogVisible.value = false;
     } catch (error) {
       console.error('Failed to delete camera:', error);
@@ -165,11 +167,11 @@ const confirmDelete = async () => {
 
 <style scoped>
 /* 页面样式 */
-::v-deep .el-dialog {
+:deep(.el-dialog) {
   border-radius: 8px;
 }
 
-::v-deep .el-form-item__label {
+:deep(.el-form-item__label) {
   font-weight: 500;
 }
 </style>

@@ -15,7 +15,7 @@
       v-model:visible="dialogVisible"
       :title="dialogTitle"
       :fields="formFields"
-      :initial-data="currentMount"
+      :initial-data="currentMount || undefined"
       @submit="handleFormSubmit"
     />
 
@@ -36,34 +36,36 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Service } from '@/services/api/services/Service';
-import type { MountRead, MountCreate, MountUpdate } from '@/services/api/models';
+import type { MountRead } from '@/services/api/models/MountRead';
+import type { MountCreate } from '@/services/api/models/MountCreate';
+import type { MountUpdate } from '@/services/api/models/MountUpdate';
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
 
 // 表格列配置
 const columns = [
-  { prop: 'id', label: 'ID', width: 80, align: 'center' },
+  { prop: 'id', label: 'ID', width: 80, align: 'center' as const },
   { prop: 'name', label: '卡口名称', width: 150 },
   { prop: 'short_name', label: '卡口简称', width: 120 },
-  { prop: 'flange_focal_distance', label: '法兰焦距(mm)', width: 140, align: 'center' },
-  { prop: 'introduced_year', label: '引入年份', width: 120, align: 'center' },
+  { prop: 'flange_focal_distance', label: '法兰焦距(mm)', width: 140, align: 'center' as const },
+  { prop: 'introduced_year', label: '引入年份', width: 120, align: 'center' as const },
   { 
     prop: 'is_active', 
     label: '状态', 
     width: 100, 
-    align: 'center',
+    align: 'center' as const,
     formatter: (row: MountRead) => row.is_active ? '启用' : '禁用'
   }
 ];
 
 // 表单字段配置
 const formFields = [
-  { prop: 'name', label: '卡口名称', type: 'input', required: true },
-  { prop: 'short_name', label: '卡口简称', type: 'input', required: false },
-  { prop: 'description', label: '卡口描述', type: 'textarea', required: false, rows: 3 },
-  { prop: 'flange_focal_distance', label: '法兰焦距(mm)', type: 'number', required: false, step: 0.1 },
-  { prop: 'introduced_year', label: '引入年份', type: 'number', required: false },
-  { prop: 'is_active', label: '是否启用', type: 'switch', required: false }
+  { prop: 'name', label: '卡口名称', type: 'input' as const, required: true },
+  { prop: 'short_name', label: '卡口简称', type: 'input' as const, required: false },
+  { prop: 'description', label: '卡口描述', type: 'textarea' as const, required: false, rows: 3 },
+  { prop: 'flange_focal_distance', label: '法兰焦距(mm)', type: 'number' as const, required: false, step: 0.1 },
+  { prop: 'introduced_year', label: '引入年份', type: 'number' as const, required: false },
+  { prop: 'is_active', label: '是否启用', type: 'switch' as const, required: false }
 ];
 
 // 状态管理
@@ -108,7 +110,7 @@ const handleFormSubmit = async (data: MountCreate | MountUpdate) => {
   try {
     if (currentMount.value) {
       // 更新卡口
-      await Service.updateMountMountsMountIdPut(currentMount.value.id, data as MountUpdate);
+      await Service.updateMountMountsIdPut(currentMount.value.id, data as MountUpdate);
     } else {
       // 创建卡口
       await Service.createMountMountsPost(data as MountCreate);
@@ -121,7 +123,7 @@ const handleFormSubmit = async (data: MountCreate | MountUpdate) => {
 const confirmDelete = async () => {
   if (currentMount.value) {
     try {
-      await Service.deleteMountMountsMountIdDelete(currentMount.value.id);
+      await Service.deleteMountMountsIdDelete(currentMount.value.id);
       confirmDialogVisible.value = false;
     } catch (error) {
       console.error('Failed to delete mount:', error);
@@ -132,11 +134,11 @@ const confirmDelete = async () => {
 
 <style scoped>
 /* 页面样式 */
-::v-deep .el-dialog {
+:deep(.el-dialog) {
   border-radius: 8px;
 }
 
-::v-deep .el-form-item__label {
+:deep(.el-form-item__label) {
   font-weight: 500;
 }
 </style>
