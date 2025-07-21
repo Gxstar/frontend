@@ -276,7 +276,11 @@ onMounted(() => {
 function handleNavigation(tab) {
   console.log('处理导航到:', tab);
   activeTab.value = tab;
-  router.push({ name: tab });
+  if (tab === 'user-center') {
+    router.push({ name: 'admin-dashboard' });
+  } else {
+    router.push({ name: tab });
+  }
   console.log('路由跳转后:', router.currentRoute.value);
 }
 
