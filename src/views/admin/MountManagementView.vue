@@ -1,13 +1,142 @@
 <template>
-  <div>
-    <!-- 卡口管理内容 -->
+  <div class="p-6 bg-gray-50 min-h-screen">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">卡口管理</h1>
+
+    <DataTable
+      title="卡口列表"
+      :columns="columns"
+      :fetchData="fetchMounts"
+      @add="handleAdd"
+      @edit="handleEdit"
+      @delete="handleDelete"
+    />
+
+    <FormComponent
+      v-model:visible="dialogVisible"
+      :title="dialogTitle"
+      :fields="formFields"
+      :initial-data="currentMount"
+      @submit="handleFormSubmit"
+    />
+
+    <el-dialog
+      v-model="confirmDialogVisible"
+      title="确认删除"
+      width="30%"
+    >
+      <p>确定要删除卡口 <strong>{{ currentMount?.name }}</strong> 吗？此操作不可撤销。</p>
+      <template #footer>
+        <el-button @click="confirmDialogVisible = false">取消</el-button>
+        <el-button type="danger" @click="confirmDelete">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
-<script setup>
-// 组合式API逻辑
+<script setup lang="ts">
+import { ref } from 'vue';
+import { Service } from '@/services/api/services/Service';
+import type { MountRead, MountCreate, MountUpdate } from '@/services/api/models';
+import DataTable from '@/components/admin/DataTable.vue';
+import FormComponent from '@/components/admin/FormComponent.vue';
+
+// 表格列配置
+const columns = [
+  { prop: 'id', label: 'ID', width: 80, align: 'center' },
+  { prop: 'name', label: '卡口名称', width: 150 },
+  { prop: 'short_name', label: '卡口简称', width: 120 },
+  { prop: 'flange_focal_distance', label: '法兰焦距(mm)', width: 140, align: 'center' },
+  { prop: 'introduced_year', label: '引入年份', width: 120, align: 'center' },
+  { 
+    prop: 'is_active', 
+    label: '状态', 
+    width: 100, 
+    align: 'center',
+    formatter: (row: MountRead) => row.is_active ? '启用' : '禁用'
+  }
+];
+
+// 表单字段配置
+const formFields = [
+  { prop: 'name', label: '卡口名称', type: 'input', required: true },
+  { prop: 'short_name', label: '卡口简称', type: 'input', required: false },
+  { prop: 'description', label: '卡口描述', type: 'textarea', required: false, rows: 3 },
+  { prop: 'flange_focal_distance', label: '法兰焦距(mm)', type: 'number', required: false, step: 0.1 },
+  { prop: 'introduced_year', label: '引入年份', type: 'number', required: false },
+  { prop: 'is_active', label: '是否启用', type: 'switch', required: false }
+];
+
+// 状态管理
+const dialogVisible = ref(false);
+const confirmDialogVisible = ref(false);
+const dialogTitle = ref('添加卡口');
+const currentMount = ref<MountRead | null>(null);
+
+// 数据获取
+const fetchMounts = async (page: number, pageSize: number) => {
+  try {
+    const data = await Service.readMountsMountsGet((page - 1) * pageSize, pageSize);
+    return {
+      data: data,
+      total: data.length
+    };
+  } catch (error) {
+    console.error('Failed to fetch mounts:', error);
+    return { data: [], total: 0 };
+  }
+};
+
+// 事件处理
+const handleAdd = () => {
+  dialogTitle.value = '添加卡口';
+  currentMount.value = null;
+  dialogVisible.value = true;
+};
+
+const handleEdit = (mount: MountRead) => {
+  dialogTitle.value = '编辑卡口';
+  currentMount.value = { ...mount };
+  dialogVisible.value = true;
+};
+
+const handleDelete = (mount: MountRead) => {
+  currentMount.value = mount;
+  confirmDialogVisible.value = true;
+};
+
+const handleFormSubmit = async (data: MountCreate | MountUpdate) => {
+  try {
+    if (currentMount.value) {
+      // 更新卡口
+      await Service.updateMountMountsMountIdPut(currentMount.value.id, data as MountUpdate);
+    } else {
+      // 创建卡口
+      await Service.createMountMountsPost(data as MountCreate);
+    }
+  } catch (error) {
+    console.error('Failed to save mount:', error);
+  }
+};
+
+const confirmDelete = async () => {
+  if (currentMount.value) {
+    try {
+      await Service.deleteMountMountsMountIdDelete(currentMount.value.id);
+      confirmDialogVisible.value = false;
+    } catch (error) {
+      console.error('Failed to delete mount:', error);
+    }
+  }
+};
 </script>
 
 <style scoped>
-/* 样式 */
+/* 页面样式 */
+::v-deep .el-dialog {
+  border-radius: 8px;
+}
+
+::v-deep .el-form-item__label {
+  font-weight: 500;
+}
 </style>

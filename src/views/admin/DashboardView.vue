@@ -1,6 +1,5 @@
 <template>
   <div class="admin-container">
-    <Sidebar />
     <div class="main-content">
       <!-- 管理首页内容 -->
       <h1>欢迎来到管理首页</h1>

@@ -22,10 +22,47 @@ const router = createRouter({
     {
       path: '/about',
       name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('@/components/admin/AdminLayout.vue'),
+      meta: {
+        requiresAuth: true
+      },
+      children: [
+        {
+          path: '',
+          name: 'admin-dashboard',
+          component: () => import('@/views/admin/DashboardView.vue')
+        },
+        {
+          path: 'users',
+          name: 'admin-users',
+          component: () => import('@/views/admin/UserManagementView.vue')
+        },
+        {
+          path: 'brands',
+          name: 'admin-brands',
+          component: () => import('@/views/admin/BrandManagementView.vue')
+        },
+        {
+          path: 'cameras',
+          name: 'admin-cameras',
+          component: () => import('@/views/admin/CameraManagementView.vue')
+        },
+        {
+          path: 'lenses',
+          name: 'admin-lenses',
+          component: () => import('@/views/admin/LensManagementView.vue')
+        },
+        {
+          path: 'mounts',
+          name: 'admin-mounts',
+          component: () => import('@/views/admin/MountManagementView.vue')
+        }
+      ]
     },
   ],
 })
