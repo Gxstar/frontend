@@ -7,6 +7,9 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { Body_batch_import_cameras_cameras_batch_import_post } from './models/Body_batch_import_cameras_cameras_batch_import_post';
+export type { Body_batch_import_lenses_lenses_batch_import_post } from './models/Body_batch_import_lenses_lenses_batch_import_post';
+export type { Body_batch_import_users_users_batch_import_post } from './models/Body_batch_import_users_users_batch_import_post';
 export type { Body_login_auth_login_post } from './models/Body_login_auth_login_post';
 export type { BrandCreate } from './models/BrandCreate';
 export type { BrandRead } from './models/BrandRead';

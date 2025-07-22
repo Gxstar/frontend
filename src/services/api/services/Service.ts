@@ -2,6 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { Body_batch_import_cameras_cameras_batch_import_post } from '../models/Body_batch_import_cameras_cameras_batch_import_post';
+import type { Body_batch_import_lenses_lenses_batch_import_post } from '../models/Body_batch_import_lenses_lenses_batch_import_post';
+import type { Body_batch_import_users_users_batch_import_post } from '../models/Body_batch_import_users_users_batch_import_post';
 import type { Body_login_auth_login_post } from '../models/Body_login_auth_login_post';
 import type { BrandCreate } from '../models/BrandCreate';
 import type { BrandRead } from '../models/BrandRead';
@@ -194,6 +197,29 @@ export class Service {
         });
     }
     /**
+     * 批量导入用户
+     * 从Excel文件批量导入用户，仅超级管理员可访问
+     * - Excel文件需包含以下列：username, email, password, is_active, is_superuser, avatar
+     * - 密码将自动加密存储
+     * - 会检查用户名和邮箱的唯一性
+     * @param formData
+     * @returns UserRead Successful Response
+     * @throws ApiError
+     */
+    public static batchImportUsersUsersBatchImportPost(
+        formData: Body_batch_import_users_users_batch_import_post,
+    ): CancelablePromise<Array<UserRead>> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/users/batch-import',
+            formData: formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * 切换用户激活状态
      * 切换用户激活状态，仅超级管理员可访问
      * @param userId
@@ -354,8 +380,11 @@ export class Service {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
+                400: `请求参数错误`,
                 404: `相机不存在`,
+                409: `资源冲突`,
                 422: `Validation Error`,
+                500: `服务器内部错误`,
             },
         });
     }
@@ -379,8 +408,11 @@ export class Service {
                 'limit': limit,
             },
             errors: {
+                400: `请求参数错误`,
                 404: `相机不存在`,
+                409: `资源冲突`,
                 422: `Validation Error`,
+                500: `服务器内部错误`,
             },
         });
     }
@@ -401,8 +433,11 @@ export class Service {
                 'id': id,
             },
             errors: {
+                400: `请求参数错误`,
                 404: `相机不存在`,
+                409: `资源冲突`,
                 422: `Validation Error`,
+                500: `服务器内部错误`,
             },
         });
     }
@@ -427,8 +462,11 @@ export class Service {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
+                400: `请求参数错误`,
                 404: `相机不存在`,
+                409: `资源冲突`,
                 422: `Validation Error`,
+                500: `服务器内部错误`,
             },
         });
     }
@@ -449,8 +487,44 @@ export class Service {
                 'id': id,
             },
             errors: {
+                400: `请求参数错误`,
                 404: `相机不存在`,
+                409: `资源冲突`,
                 422: `Validation Error`,
+                500: `服务器内部错误`,
+            },
+        });
+    }
+    /**
+     * 批量导入相机
+     * 从Excel文件批量导入相机，仅超级管理员可访问
+     * - Excel文件需包含以下必要列：model, megapixels, sensor_size, interchangeable_lens, brand_id
+     * - 可选列：series, mount_type, weight, image_stabilization, built_in_flash, hot_shoe, release_date
+     * - 会检查相机型号的唯一性和品牌ID的存在性
+     * - 如果提供了mount_column参数，将处理相机与卡口的关联关系
+     * @param formData
+     * @param mountColumn Excel中包含卡口ID的列名，多个ID用逗号分隔
+     * @returns CameraRead Successful Response
+     * @throws ApiError
+     */
+    public static batchImportCamerasCamerasBatchImportPost(
+        formData: Body_batch_import_cameras_cameras_batch_import_post,
+        mountColumn?: (string | null),
+    ): CancelablePromise<Array<CameraRead>> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/cameras/batch-import',
+            query: {
+                'mount_column': mountColumn,
+            },
+            formData: formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                400: `请求参数错误`,
+                404: `相机不存在`,
+                409: `资源冲突`,
+                422: `Validation Error`,
+                500: `服务器内部错误`,
             },
         });
     }
@@ -472,6 +546,7 @@ export class Service {
             errors: {
                 400: `请求参数错误`,
                 404: `镜头不存在`,
+                409: `资源冲突，如镜头型号已存在`,
                 422: `Validation Error`,
                 500: `服务器内部错误`,
             },
@@ -499,6 +574,7 @@ export class Service {
             errors: {
                 400: `请求参数错误`,
                 404: `镜头不存在`,
+                409: `资源冲突，如镜头型号已存在`,
                 422: `Validation Error`,
                 500: `服务器内部错误`,
             },
@@ -523,6 +599,7 @@ export class Service {
             errors: {
                 400: `请求参数错误`,
                 404: `镜头不存在`,
+                409: `资源冲突，如镜头型号已存在`,
                 422: `Validation Error`,
                 500: `服务器内部错误`,
             },
@@ -551,6 +628,7 @@ export class Service {
             errors: {
                 400: `请求参数错误`,
                 404: `镜头不存在`,
+                409: `资源冲突，如镜头型号已存在`,
                 422: `Validation Error`,
                 500: `服务器内部错误`,
             },
@@ -575,6 +653,40 @@ export class Service {
             errors: {
                 400: `请求参数错误`,
                 404: `镜头不存在`,
+                409: `资源冲突，如镜头型号已存在`,
+                422: `Validation Error`,
+                500: `服务器内部错误`,
+            },
+        });
+    }
+    /**
+     * 批量导入镜头
+     * 从Excel文件批量导入镜头，仅超级管理员可访问
+     * - Excel文件需包含以下必要列：model, mount_type, sensor_size, is_prime, min_focal_length, max_focal_length, min_focus_distance, max_aperture_max, length, weight, brand_id
+     * - 可选列：series, magnification, max_aperture_min, color
+     * - 会检查镜头型号的唯一性和品牌ID的存在性
+     * - 如果提供了mount_column参数，将处理镜头与卡口的关联关系
+     * @param formData
+     * @param mountColumn Excel中包含卡口ID的列名，多个ID用逗号分隔
+     * @returns LensRead Successful Response
+     * @throws ApiError
+     */
+    public static batchImportLensesLensesBatchImportPost(
+        formData: Body_batch_import_lenses_lenses_batch_import_post,
+        mountColumn?: (string | null),
+    ): CancelablePromise<Array<LensRead>> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/lenses/batch-import',
+            query: {
+                'mount_column': mountColumn,
+            },
+            formData: formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                400: `请求参数错误`,
+                404: `镜头不存在`,
+                409: `资源冲突，如镜头型号已存在`,
                 422: `Validation Error`,
                 500: `服务器内部错误`,
             },
