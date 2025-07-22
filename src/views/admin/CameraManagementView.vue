@@ -1,15 +1,19 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen">
     <h1 class="text-2xl font-bold text-gray-800 mb-6">相机管理</h1>
-
     <DataTable
-      title="相机列表"
-      :columns="columns"
-      :fetchData="fetchCameras"
-      @add="handleAdd"
-      @edit="handleEdit"
-      @delete="handleDelete"
-    />
+      :batch-import-config="{
+        buttonText: '批量导入相机',
+        dialogTitle: '批量导入相机',
+        importApi: (formData) => Service.batchImportCamerasCamerasBatchImportPost({ file: formData.get('file') as Blob })
+      }"
+        title="相机列表"
+        :columns="columns"
+        :fetchData="fetchCameras"
+        @add="handleAdd"
+        @edit="handleEdit"
+        @delete="handleDelete"
+      />
 
     <FormComponent
       v-model:visible="dialogVisible"
@@ -39,6 +43,7 @@ import { Service } from '@/services/api/services/Service';
 import type { CameraRead } from '@/services/api/models/CameraRead';
 import type { CameraCreate } from '@/services/api/models/CameraCreate';
 import type { CameraUpdate } from '@/services/api/models/CameraUpdate';
+import BatchImport from '@/components/admin/BatchImport.vue';
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
 

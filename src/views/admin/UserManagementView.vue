@@ -1,15 +1,18 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen">
     <h1 class="text-2xl font-bold text-gray-800 mb-6">用户管理</h1>
-
     <DataTable
+      :batch-import-config="{
+        buttonText: '批量导入',
+        dialogTitle: '用户批量导入',
+        importApi: (formData) => Service.batchImportUsersUsersBatchImportPost({ file: formData.get('file') as Blob })
+      }"
       title="用户列表"
       :columns="columns"
       :fetchData="fetchUsers"
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"
-      @view="handleView"
     />
 
     <FormComponent
@@ -19,6 +22,7 @@
       :initial-data="currentUser || undefined"
       @submit="handleFormSubmit"
     />
+
 
     <el-dialog
       v-model="confirmDialogVisible"
@@ -35,10 +39,12 @@
 </template>
 
 <script setup lang="ts">
+
 import { ref } from 'vue';
 import { Service } from '@/services/api/services/Service';
 import type { UserRead } from '@/services/api/models/UserRead';
 import type { UserUpdate } from '@/services/api/models/UserUpdate';
+
 import type { UserCreate } from '@/services/api/models/UserCreate';
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
@@ -77,6 +83,7 @@ const formFields = [
 // 状态管理
 const dialogVisible = ref(false);
 const confirmDialogVisible = ref(false);
+
 const dialogTitle = ref('添加用户');
 const currentUser = ref<UserRead | null>(null);
 
@@ -101,11 +108,7 @@ const handleAdd = () => {
   dialogVisible.value = true;
 };
 
-const handleView = (user: UserRead) => {
-  dialogTitle.value = '查看用户';
-  currentUser.value = { ...user };
-  dialogVisible.value = true;
-};
+
 
 const handleEdit = (user: UserRead) => {
   dialogTitle.value = '编辑用户';
@@ -127,7 +130,7 @@ const handleFormSubmit = async (data: UserCreate | UserUpdate) => {
       // 创建用户
       await Service.createUserUsersPost(data as UserCreate);
     }
-    // 可以在这里添加成功提示
+    fetchUsers(1, 10); // 刷新用户列表
   } catch (error) {
     console.error('Failed to save user:', error);
     // 可以在这里添加错误提示
@@ -139,7 +142,7 @@ const confirmDelete = async () => {
     try {
       await Service.deleteUserUsersUserIdDelete(currentUser.value.id);
       confirmDialogVisible.value = false;
-      // 可以在这里添加成功提示
+      fetchUsers(1, 10); // 刷新用户列表
     } catch (error) {
       console.error('Failed to delete user:', error);
       // 可以在这里添加错误提示

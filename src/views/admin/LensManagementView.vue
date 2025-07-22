@@ -1,9 +1,19 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen">
     <h1 class="text-2xl font-bold text-gray-800 mb-6">镜头管理</h1>
-
-    <DataTable title="镜头列表" :columns="columns" :fetchData="fetchLenses" @add="handleAdd" @edit="handleEdit"
-      @delete="handleDelete" />
+    <DataTable
+      :batch-import-config="{
+        buttonText: '批量导入镜头',
+        dialogTitle: '批量导入镜头',
+        importApi: (formData) => Service.batchImportLensesLensesBatchImportPost({ file: formData.get('file') as Blob })
+      }"
+      title="镜头列表"
+      :columns="columns"
+      :fetchData="fetchLenses"
+      @add="handleAdd"
+      @edit="handleEdit"
+      @delete="handleDelete"
+    />
 
     <FormComponent v-model:visible="dialogVisible" :title="dialogTitle" :fields="formFields" :initial-data="currentLens || undefined"
       @submit="handleFormSubmit" />
@@ -24,6 +34,7 @@ import { Service } from '@/services/api/services/Service';
 import type { LensRead } from '@/services/api/models/LensRead';
 import type { LensCreate } from '@/services/api/models/LensCreate';
 import type { LensUpdate } from '@/services/api/models/LensUpdate';
+
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
 

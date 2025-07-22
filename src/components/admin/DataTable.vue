@@ -2,9 +2,18 @@
   <div class="p-4 bg-white rounded-lg shadow-md">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold text-gray-800">{{ title }}</h2>
-      <el-button type="primary" @click="handleAdd">
-        <el-icon class="mr-2"><Plus /></el-icon> 添加
-      </el-button>
+      <div class="flex gap-2">
+        <BatchImport
+          v-if="batchImportConfig"
+          :button-text="batchImportConfig.buttonText"
+          :dialog-title="batchImportConfig.dialogTitle"
+          :import-api="batchImportConfig.importApi"
+          @success="handleBatchImportSuccess"
+        />
+        <el-button type="primary" @click="handleAdd">
+          <el-icon class="mr-2"><Plus /></el-icon> 添加
+        </el-button>
+      </div>
     </div>
 
     <el-table v-loading="loading" :data="tableData" border stripe class="w-full">
@@ -22,7 +31,6 @@
 
       <el-table-column label="操作" width="180" align="center">
         <template #default="scope">
-          <el-button link @click="handleView(scope.row)">查看</el-button>
           <el-button link @click="handleEdit(scope.row)">编辑</el-button>
           <el-button link danger @click="handleDelete(scope.row)">删除</el-button>
         </template>
@@ -40,6 +48,7 @@
 <script setup lang="ts">
 import { ref, defineProps, defineEmits, onMounted } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
+import BatchImport from './BatchImport.vue';
 
 const props = defineProps<{
   title: string;
@@ -54,11 +63,16 @@ const props = defineProps<{
     data: any[];
     total: number;
   }>;
+  batchImportConfig?: {
+    buttonText: string;
+    dialogTitle: string;
+    importApi: (formData: FormData) => Promise<any>;
+  };
 }>()
 
 const emits = defineEmits<{
   (e: 'add'): void;
-  (e: 'view', row: any): void;
+  
   (e: 'edit', row: any): void;
   (e: 'delete', row: any): void;
 }>();
@@ -97,16 +111,16 @@ const handleAdd = () => {
   emits('add');
 };
 
-const handleView = (row: any) => {
-  emits('view', row);
-};
-
 const handleEdit = (row: any) => {
   emits('edit', row);
 };
 
 const handleDelete = (row: any) => {
   emits('delete', row);
+};
+
+const handleBatchImportSuccess = () => {
+  loadData();
 };
 
 onMounted(() => {
