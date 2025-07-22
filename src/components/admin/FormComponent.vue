@@ -181,11 +181,11 @@ watch(() => props.visible, (newVal) => {
 
 <style scoped>
 /* 表单样式优化 */
-::v-deep .el-form-item {
+:deep(.el-form-item) {
   margin-bottom: 16px;
 }
 
-::v-deep .el-dialog__body {
+:deep(.el-dialog__body) {
   max-height: 60vh;
   overflow-y: auto;
   padding: 20px;

@@ -150,11 +150,11 @@ const confirmDelete = async () => {
 
 <style scoped>
 /* 页面样式 */
-::v-deep .el-dialog {
+:deep(.el-dialog) {
   border-radius: 8px;
 }
 
-::v-deep .el-form-item__label {
+:deep(.el-form-item__label) {
   font-weight: 500;
 }
 </style>
