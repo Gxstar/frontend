@@ -13,6 +13,9 @@
         <el-button type="primary" @click="handleAdd">
           <el-icon class="mr-2"><Plus /></el-icon> 添加
         </el-button>
+        <el-button v-if="templateDownloadConfig" type="primary" plain @click="downloadTemplate">
+          <el-icon class="mr-2"><Download /></el-icon> {{ templateDownloadConfig.buttonText || '下载模板' }}
+        </el-button>
       </div>
     </div>
 
@@ -49,6 +52,7 @@
 import { ref, defineProps, defineEmits, onMounted } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
 import BatchImport from './BatchImport.vue';
+import { Service } from '@/services/api/services/Service';
 
 const props = defineProps<{
   title: string;
@@ -67,6 +71,10 @@ const props = defineProps<{
     buttonText: string;
     dialogTitle: string;
     importApi: (formData: FormData) => Promise<any>;
+  };
+  templateDownloadConfig?: {
+    buttonText?: string;
+    filename: string;
   };
 }>()
 
@@ -126,6 +134,23 @@ const handleBatchImportSuccess = () => {
 onMounted(() => {
   loadData();
 });
+
+const downloadTemplate = async () => {
+  if (!props.templateDownloadConfig) return;
+  try {
+    const response = await Service.downloadTemplateTemplatesDownloadFilenameGet(props.templateDownloadConfig.filename);
+    const url = window.URL.createObjectURL(new Blob([response]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = props.templateDownloadConfig.filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error('Error downloading template:', error);
+  }
+};
 </script>
 
 <style scoped>

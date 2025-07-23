@@ -7,6 +7,10 @@
         dialogTitle: '批量导入镜头',
         importApi: (formData) => Service.batchImportLensesLensesBatchImportPost({ file: formData.get('file') as Blob })
       }"
+      :template-download-config="{
+        buttonText: '下载镜头模板',
+        filename: 'lens_import_template.xlsx'
+      }"
       title="镜头列表"
       :columns="columns"
       :fetchData="fetchLenses"

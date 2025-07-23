@@ -814,4 +814,26 @@ export class Service {
             },
         });
     }
+    /**
+     * 下载模板文件
+     * 下载指定的Excel导入模板文件
+     * - **filename**: 模板文件名，必须是允许的模板之一
+     * @param filename
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static downloadTemplateTemplatesDownloadFilenameGet(
+        filename: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/templates/download/{filename}',
+            path: {
+                'filename': filename,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
 }

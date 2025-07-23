@@ -7,6 +7,10 @@
         dialogTitle: '用户批量导入',
         importApi: (formData) => Service.batchImportUsersUsersBatchImportPost({ file: formData.get('file') as Blob })
       }"
+      :template-download-config="{
+        buttonText: '下载用户模板',
+        filename: 'user_import_template.xlsx'
+      }"
       title="用户列表"
       :columns="columns"
       :fetchData="fetchUsers"

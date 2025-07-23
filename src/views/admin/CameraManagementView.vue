@@ -7,13 +7,17 @@
         dialogTitle: '批量导入相机',
         importApi: (formData) => Service.batchImportCamerasCamerasBatchImportPost({ file: formData.get('file') as Blob })
       }"
-        title="相机列表"
-        :columns="columns"
-        :fetchData="fetchCameras"
-        @add="handleAdd"
-        @edit="handleEdit"
-        @delete="handleDelete"
-      />
+      :template-download-config="{
+        buttonText: '下载相机模板',
+        filename: 'camera_import_template.xlsx'
+      }"
+      title="相机列表"
+      :columns="columns"
+      :fetchData="fetchCameras"
+      @add="handleAdd"
+      @edit="handleEdit"
+      @delete="handleDelete"
+    />
 
     <FormComponent
       v-model:visible="dialogVisible"
