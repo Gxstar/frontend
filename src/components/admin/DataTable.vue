@@ -135,6 +135,10 @@ onMounted(() => {
   loadData();
 });
 
+defineExpose({
+  loadData
+});
+
 const downloadTemplate = async () => {
   if (!props.templateDownloadConfig) return;
   try {

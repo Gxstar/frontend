@@ -3,6 +3,7 @@
     <h1 class="text-2xl font-bold text-gray-800 mb-6">品牌管理</h1>
 
     <DataTable
+      ref="dataTableRef"
       title="品牌列表"
       :columns="columns"
       :fetchData="fetchBrands"
@@ -15,7 +16,7 @@
       v-model:visible="dialogVisible"
       :title="dialogTitle"
       :fields="formFields"
-      :initial-data="currentBrand"
+      :initial-data="currentBrand || undefined"
       @submit="handleFormSubmit"
     />
 
@@ -35,13 +36,17 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+
+interface DataTableExposed {
+  loadData: () => Promise<void>;
+}
 import { Service } from '@/services/api/services/Service';
 import type { BrandRead } from '@/services/api/models/BrandRead';
 import type { BrandCreate } from '@/services/api/models/BrandCreate';
 import type { BrandUpdate } from '@/services/api/models/BrandUpdate';
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
-
+import { ElMessage } from 'element-plus';
 // 表格列配置
 const columns: Array<{ prop: string; label: string; width?: number; align?: 'left' | 'center' | 'right'; formatter?: (row: BrandRead) => string }> = [
   { prop: 'id', label: 'ID', width: 80, align: 'center' },
@@ -72,10 +77,11 @@ const formFields: Array<{ prop: string; label: string; type: 'input' | 'textarea
 ];
 
 // 状态管理
+const dataTableRef = ref<DataTableExposed | null>(null);
 const dialogVisible = ref(false);
 const confirmDialogVisible = ref(false);
 const dialogTitle = ref('添加品牌');
-const currentBrand = ref<BrandRead | undefined>();
+const currentBrand = ref<BrandRead | null>(null);
 
 // 数据获取
 const fetchBrands = async (page: number, pageSize: number) => {
@@ -94,7 +100,7 @@ const fetchBrands = async (page: number, pageSize: number) => {
 // 事件处理
 const handleAdd = () => {
   dialogTitle.value = '添加品牌';
-  currentBrand.value = undefined;
+  currentBrand.value = null;
   dialogVisible.value = true;
 };
 
@@ -119,19 +125,26 @@ const handleFormSubmit = async (data: Record<string, any>) => {
     description: data.description,
     founded_year: data.founded_year,
     headquarters: data.headquarters,
-    is_active: data.is_active
+    is_active: data.is_active,
+    created_at: undefined,
+    updated_at: undefined
   } as BrandCreate | BrandUpdate;
   try {
     if (currentBrand.value && currentBrand.value.id !== undefined) {
         // 更新品牌
         const brandId = currentBrand.value.id as number;
         await Service.updateBrandBrandsIdPut(brandId, brandData as BrandUpdate);
+        ElMessage.success('品牌更新成功');
       } else if (!currentBrand.value) {
       // 创建品牌
       await Service.createBrandBrandsPost(brandData as BrandCreate);
+      ElMessage.success('品牌添加成功');
     }
+    // 刷新数据
+    dataTableRef.value?.loadData();
   } catch (error) {
     console.error('Failed to save brand:', error);
+    ElMessage.error('操作失败，请重试');
   }
 };
 
