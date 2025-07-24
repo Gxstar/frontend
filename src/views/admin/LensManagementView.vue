@@ -2,7 +2,8 @@
   <div class="p-6 bg-gray-50 min-h-screen">
     <h1 class="text-2xl font-bold text-gray-800 mb-6">镜头管理</h1>
     <DataTable
-      :batch-import-config="{
+  ref="dataTableRef"
+  :batch-import-config="{
         buttonText: '批量导入镜头',
         dialogTitle: '批量导入镜头',
         importApi: (formData) => Service.batchImportLensesLensesBatchImportPost({ file: formData.get('file') as Blob })
@@ -41,6 +42,11 @@ import type { LensUpdate } from '@/services/api/models/LensUpdate';
 
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
+
+interface DataTableExposed {
+  loadData: () => Promise<void>;
+}
+const dataTableRef = ref<DataTableExposed | null>(null);
 
 // 表格列配置
 const columns = [
@@ -171,8 +177,11 @@ const handleFormSubmit = async (data: LensCreate | LensUpdate) => {
       await Service.createLensLensesPost(data as LensCreate);
     }
   } catch (error) {
-    console.error('Failed to save lens:', error);
-  }
+      console.error('Failed to save lens:', error);
+    } finally {
+      // 刷新数据
+      dataTableRef.value?.loadData();
+    }
 };
 
 const confirmDelete = async () => {
@@ -180,6 +189,8 @@ const confirmDelete = async () => {
     try {
       await Service.deleteLensLensesIdDelete(currentLens.value.id);
       confirmDialogVisible.value = false;
+      // 刷新数据
+      dataTableRef.value?.loadData();
     } catch (error) {
       console.error('Failed to delete lens:', error);
     }

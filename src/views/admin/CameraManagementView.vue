@@ -2,7 +2,8 @@
   <div class="p-6 bg-gray-50 min-h-screen">
     <h1 class="text-2xl font-bold text-gray-800 mb-6">相机管理</h1>
     <DataTable
-      :batch-import-config="{
+  ref="dataTableRef"
+  :batch-import-config="{
         buttonText: '批量导入相机',
         dialogTitle: '批量导入相机',
         importApi: (formData) => Service.batchImportCamerasCamerasBatchImportPost({ file: formData.get('file') as Blob })
@@ -50,6 +51,11 @@ import type { CameraUpdate } from '@/services/api/models/CameraUpdate';
 import BatchImport from '@/components/admin/BatchImport.vue';
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
+
+interface DataTableExposed {
+  loadData: () => Promise<void>;
+}
+const dataTableRef = ref<DataTableExposed | null>(null);
 
 // 表格列配置
 const columns = [
@@ -150,14 +156,16 @@ const handleDelete = (camera: CameraRead) => {
 
 const handleFormSubmit = async (data: CameraCreate | CameraUpdate) => {
   try {
-    if (currentCamera.value) {
-      // 更新相机
-      await Service.updateCameraCamerasIdPut(currentCamera.value.id, data as CameraUpdate);
-    } else {
-      // 创建相机
-      await Service.createCameraCamerasPost(data as CameraCreate);
-    }
-  } catch (error) {
+      if (currentCamera.value) {
+        // 更新相机
+        await Service.updateCameraCamerasIdPut(currentCamera.value.id, data as CameraUpdate);
+      } else {
+        // 创建相机
+        await Service.createCameraCamerasPost(data as CameraCreate);
+      }
+      // 刷新数据
+      dataTableRef.value?.loadData();
+    } catch (error) {
     console.error('Failed to save camera:', error);
   }
 };
@@ -167,6 +175,8 @@ const confirmDelete = async () => {
     try {
       await Service.deleteCameraCamerasIdDelete(currentCamera.value.id);
       confirmDialogVisible.value = false;
+      // 刷新数据
+      dataTableRef.value?.loadData();
     } catch (error) {
       console.error('Failed to delete camera:', error);
     }

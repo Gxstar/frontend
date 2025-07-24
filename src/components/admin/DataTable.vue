@@ -49,8 +49,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits, onMounted } from 'vue';
-import { Plus } from '@element-plus/icons-vue';
+import { ref, onMounted } from 'vue';
+import { Plus,Download } from '@element-plus/icons-vue';
 import BatchImport from './BatchImport.vue';
 import { Service } from '@/services/api/services/Service';
 

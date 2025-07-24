@@ -3,7 +3,8 @@
     <h1 class="text-2xl font-bold text-gray-800 mb-6">卡口管理</h1>
 
     <DataTable
-      title="卡口列表"
+  ref="dataTableRef"
+  title="卡口列表"
       :columns="columns"
       :fetchData="fetchMounts"
       @add="handleAdd"
@@ -41,6 +42,11 @@ import type { MountCreate } from '@/services/api/models/MountCreate';
 import type { MountUpdate } from '@/services/api/models/MountUpdate';
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
+
+interface DataTableExposed {
+  loadData: () => Promise<void>;
+}
+const dataTableRef = ref<DataTableExposed | null>(null);
 
 // 表格列配置
 const columns = [
@@ -116,8 +122,11 @@ const handleFormSubmit = async (data: MountCreate | MountUpdate) => {
       await Service.createMountMountsPost(data as MountCreate);
     }
   } catch (error) {
-    console.error('Failed to save mount:', error);
-  }
+      console.error('Failed to save mount:', error);
+    } finally {
+      // 刷新数据
+      dataTableRef.value?.loadData();
+    }
 };
 
 const confirmDelete = async () => {
@@ -125,6 +134,8 @@ const confirmDelete = async () => {
     try {
       await Service.deleteMountMountsIdDelete(currentMount.value.id);
       confirmDialogVisible.value = false;
+      // 刷新数据
+      dataTableRef.value?.loadData();
     } catch (error) {
       console.error('Failed to delete mount:', error);
     }

@@ -2,7 +2,8 @@
   <div class="p-6 bg-gray-50 min-h-screen">
     <h1 class="text-2xl font-bold text-gray-800 mb-6">用户管理</h1>
     <DataTable
-      :batch-import-config="{
+  ref="dataTableRef"
+  :batch-import-config="{
         buttonText: '批量导入',
         dialogTitle: '用户批量导入',
         importApi: (formData) => Service.batchImportUsersUsersBatchImportPost({ file: formData.get('file') as Blob })
@@ -52,6 +53,11 @@ import type { UserUpdate } from '@/services/api/models/UserUpdate';
 import type { UserCreate } from '@/services/api/models/UserCreate';
 import DataTable from '@/components/admin/DataTable.vue';
 import FormComponent from '@/components/admin/FormComponent.vue';
+
+interface DataTableExposed {
+  loadData: () => Promise<void>;
+}
+const dataTableRef = ref<DataTableExposed | null>(null);
 
 // 表格列配置
 const columns = [
@@ -134,7 +140,7 @@ const handleFormSubmit = async (data: UserCreate | UserUpdate) => {
       // 创建用户
       await Service.createUserUsersPost(data as UserCreate);
     }
-    fetchUsers(1, 10); // 刷新用户列表
+    dataTableRef.value?.loadData(); // 刷新数据
   } catch (error) {
     console.error('Failed to save user:', error);
     // 可以在这里添加错误提示
@@ -146,7 +152,7 @@ const confirmDelete = async () => {
     try {
       await Service.deleteUserUsersUserIdDelete(currentUser.value.id);
       confirmDialogVisible.value = false;
-      fetchUsers(1, 10); // 刷新用户列表
+      dataTableRef.value?.loadData(); // 刷新数据
     } catch (error) {
       console.error('Failed to delete user:', error);
       // 可以在这里添加错误提示
